@@ -327,6 +327,14 @@ export default function App() {
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
 
+  // Profile & password (self-service)
+  const [profileForm, setProfileForm] = useState({ fullName: '', timezone: 'Asia/Jakarta' });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
   const [importDrawerOpen, setImportDrawerOpen] = useState(false);
   const [importType, setImportType] = useState<'users' | 'tasks'>('users');
   const [importSelectedProjectId, setImportSelectedProjectId] = useState<string>('');
@@ -1772,6 +1780,71 @@ export default function App() {
     }
   };
 
+  // Profile & password (self-service)
+  const openProfileView = () => {
+    if (user) setProfileForm({ fullName: user.fullName || '', timezone: user.timezone || 'Asia/Jakarta' });
+    setProfileMsg(null);
+    setPasswordMsg(null);
+    setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setActiveTab('profil');
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setProfileMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProfileMsg({ ok: true, text: 'Profil berhasil diperbarui.' });
+        fetchProfile();
+      } else {
+        setProfileMsg({ ok: false, text: data?.message || 'Gagal memperbarui profil.' });
+      }
+    } catch (err) {
+      setProfileMsg({ ok: false, text: 'Gagal terhubung ke server.' });
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMsg(null);
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordMsg({ ok: false, text: 'Sandi baru minimal 8 karakter.' });
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordMsg({ ok: false, text: 'Konfirmasi sandi tidak cocok.' });
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/password/change`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldPassword: passwordForm.oldPassword, newPassword: passwordForm.newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordMsg({ ok: true, text: 'Sandi berhasil diperbarui.' });
+        setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPasswordMsg({ ok: false, text: data?.message || 'Gagal memperbarui sandi.' });
+      }
+    } catch (err) {
+      setPasswordMsg({ ok: false, text: 'Gagal terhubung ke server.' });
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
   // Locations & Holidays
   const handleSaveLocation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -2034,12 +2107,17 @@ export default function App() {
                 )}
               </div>
               <div className="h-8 w-px bg-slate-800"></div>
-              <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={openProfileView}
+                title="Profil & Keamanan"
+                className="flex items-center gap-3 hover:bg-slate-800/50 rounded-lg px-2 py-1 -mx-1 transition-colors focus:outline-none"
+              >
                 <span className="text-xs font-semibold text-slate-300">{user.fullName}</span>
                 <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
                   {user.roles[0]}
                 </span>
-              </div>
+              </button>
             </div>
           </header>
 
@@ -2117,21 +2195,7 @@ export default function App() {
       case 'admin':
         return renderAdminView();
       case 'profil':
-        return (
-          <div className="space-y-4">
-            <h1 className="text-lg font-bold text-white">Profil Saya</h1>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-xs">
-              <div className="flex justify-between"><span>Nama:</span> <span className="text-white font-semibold">{user.fullName}</span></div>
-              <div className="flex justify-between"><span>Email:</span> <span className="text-white">{user.email}</span></div>
-              <div className="flex justify-between"><span>NIK:</span> <span className="text-white font-mono">{user.nik}</span></div>
-              <div className="flex justify-between"><span>Timezone:</span> <span className="text-sky-400">{user.timezone}</span></div>
-              <div className="flex justify-between"><span>Default Checkin Mode:</span> <span className="text-slate-350">{user.checkinMode}</span></div>
-            </div>
-            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 py-2.5 rounded-lg text-sm font-bold text-white mt-4">
-              Keluar
-            </button>
-          </div>
-        );
+        return renderProfileView();
       default:
         return renderDashboardView();
     }
@@ -4653,6 +4717,95 @@ export default function App() {
           </div>
         </form>
       </div>
+    </div>
+  );
+
+  const renderProfileView = () => (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-lg font-bold text-white">Profil Saya</h1>
+        <p className="text-xs text-slate-400 mt-1">Kelola data profil dan keamanan akun Anda.</p>
+      </div>
+
+      {/* Read-only identity */}
+      <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2.5 text-xs">
+        <div className="flex justify-between"><span className="text-slate-400">Email</span> <span className="text-white">{user.email}</span></div>
+        <div className="flex justify-between"><span className="text-slate-400">NIK</span> <span className="text-white font-mono">{user.nik}</span></div>
+        <div className="flex justify-between"><span className="text-slate-400">Peran Sistem</span> <span className="text-sky-400 font-semibold">{(user.roles || []).join(', ')}</span></div>
+        <div className="flex justify-between"><span className="text-slate-400">Mode Check-in</span> <span className="text-slate-300">{user.checkinMode}</span></div>
+        <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-850">Email, NIK, dan peran hanya dapat diubah oleh Admin/HR.</p>
+      </div>
+
+      {/* Edit profile */}
+      <form onSubmit={handleUpdateProfile} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+        <h2 className="text-sm font-bold text-white">Ubah Profil</h2>
+        {profileMsg && (
+          <div className={`text-xs rounded-lg px-3 py-2 border ${profileMsg.ok ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>{profileMsg.text}</div>
+        )}
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</label>
+          <input
+            type="text" required value={profileForm.fullName}
+            onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
+            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Zona Waktu</label>
+          <select
+            value={profileForm.timezone}
+            onChange={e => setProfileForm({ ...profileForm, timezone: e.target.value })}
+            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+          >
+            <option value="Asia/Jakarta">WIB — Asia/Jakarta</option>
+            <option value="Asia/Makassar">WITA — Asia/Makassar</option>
+            <option value="Asia/Jayapura">WIT — Asia/Jayapura</option>
+          </select>
+        </div>
+        <button type="submit" disabled={profileSaving} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
+          {profileSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Simpan Profil'}
+        </button>
+      </form>
+
+      {/* Change password */}
+      <form onSubmit={handleChangePassword} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+        <h2 className="text-sm font-bold text-white">Ganti Sandi</h2>
+        {passwordMsg && (
+          <div className={`text-xs rounded-lg px-3 py-2 border ${passwordMsg.ok ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>{passwordMsg.text}</div>
+        )}
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sandi Lama</label>
+          <input
+            type="password" required value={passwordForm.oldPassword}
+            onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sandi Baru</label>
+          <input
+            type="password" required minLength={8} value={passwordForm.newPassword}
+            onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+          />
+          <p className="text-[10px] text-slate-500 mt-1">Minimal 8 karakter.</p>
+        </div>
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Konfirmasi Sandi Baru</label>
+          <input
+            type="password" required value={passwordForm.confirmPassword}
+            onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+          />
+        </div>
+        <button type="submit" disabled={passwordSaving} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
+          {passwordSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Perbarui Sandi'}
+        </button>
+      </form>
+
+      <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 py-2.5 rounded-lg text-sm font-bold text-white">
+        Keluar
+      </button>
     </div>
   );
 

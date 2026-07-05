@@ -52,4 +52,22 @@ export declare class AuthController {
             code: any;
         } | null;
     }>;
+    changePassword(req: Request, body: {
+        oldPassword?: string;
+        newPassword?: string;
+    }): Promise<{
+        message: string;
+    }>;
+    updateMe(req: Request, body: {
+        fullName?: string;
+        timezone?: string;
+    }): Promise<{
+        id: string;
+        email: string;
+        fullName: string;
+        nik: string;
+        roles: import("@prisma/client").$Enums.SystemRole[];
+        timezone: string;
+        checkinMode: import("@prisma/client").$Enums.CheckinMode;
+    }>;
 }

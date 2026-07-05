@@ -18,6 +18,21 @@ export declare class AuthService {
             checkinMode: any;
         };
     }>;
+    changePassword(userId: string, oldPassword: string, newPassword: string): Promise<{
+        message: string;
+    }>;
+    updateProfile(userId: string, body: {
+        fullName?: string;
+        timezone?: string;
+    }): Promise<{
+        id: string;
+        email: string;
+        fullName: string;
+        nik: string;
+        roles: import("@prisma/client").$Enums.SystemRole[];
+        timezone: string;
+        checkinMode: import("@prisma/client").$Enums.CheckinMode;
+    }>;
     refresh(token: string): Promise<{
         accessToken: string;
         refreshToken: string;

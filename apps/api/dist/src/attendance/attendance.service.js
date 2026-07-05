@@ -183,36 +183,23 @@ let AttendanceService = class AttendanceService {
         });
         const todayCheckin = checkins.find(c => c.type === client_1.CheckinType.IN) || null;
         const checkout = checkins.find(c => c.type === client_1.CheckinType.OUT) || null;
-        const activeProject = await this.prisma.project.findFirst({
-            where: { status: 'ACTIVE' }
+        const now = new Date();
+        const activeSprintTasks = await this.prisma.task.findMany({
+            where: {
+                status: { not: client_1.TaskStatus.DONE },
+                assignments: { some: { user_id: userId, unassigned_at: null } },
+                project: { status: 'ACTIVE' },
+                sprint: { start_date: { lte: now }, end_date: { gte: now } },
+            },
         });
-        let activeSprintTasks = [];
-        let carryOverTasks = [];
-        if (activeProject) {
-            const activeSprint = await this.prisma.sprint.findFirst({
-                where: {
-                    project_id: activeProject.id,
-                    start_date: { lte: new Date() },
-                    end_date: { gte: new Date() }
-                }
-            });
-            if (activeSprint) {
-                activeSprintTasks = await this.prisma.task.findMany({
-                    where: {
-                        sprint_id: activeSprint.id,
-                        assignments: { some: { user_id: userId, unassigned_at: null } }
-                    }
-                });
-                carryOverTasks = await this.prisma.task.findMany({
-                    where: {
-                        project_id: activeProject.id,
-                        sprint_id: { not: activeSprint.id },
-                        status: { not: client_1.TaskStatus.DONE },
-                        assignments: { some: { user_id: userId, unassigned_at: null } }
-                    }
-                });
-            }
-        }
+        const carryOverTasks = await this.prisma.task.findMany({
+            where: {
+                status: { not: client_1.TaskStatus.DONE },
+                assignments: { some: { user_id: userId, unassigned_at: null } },
+                project: { status: 'ACTIVE' },
+                sprint: { end_date: { lt: now } },
+            },
+        });
         const activeLeave = await this.prisma.leaveRequest.findFirst({
             where: {
                 user_id: userId,

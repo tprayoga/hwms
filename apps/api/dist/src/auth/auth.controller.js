@@ -81,6 +81,14 @@ let AuthController = class AuthController {
             functionalRole: user.functional_role ? { id: user.functional_role.id, name: user.functional_role.name, code: user.functional_role.code } : null,
         };
     }
+    async changePassword(req, body) {
+        const user = req['user'];
+        return this.authService.changePassword(user.id, body.oldPassword || '', body.newPassword || '');
+    }
+    async updateMe(req, body) {
+        const user = req['user'];
+        return this.authService.updateProfile(user.id, body);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -115,6 +123,22 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "me", null);
+__decorate([
+    (0, common_1.Post)('password/change'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "changePassword", null);
+__decorate([
+    (0, common_1.Patch)('me'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateMe", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

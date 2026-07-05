@@ -253,44 +253,32 @@ export class AttendanceService {
     const todayCheckin = checkins.find(c => c.type === CheckinType.IN) || null;
     const checkout = checkins.find(c => c.type === CheckinType.OUT) || null;
 
-    // Fetch active project
-    const activeProject = await this.prisma.project.findFirst({
-      where: { status: 'ACTIVE' }
+    // Today's task picker spans ALL active projects, not just the first one.
+    // Previously this used project.findFirst({ ACTIVE }) + that project's active
+    // sprint, so tasks in any other project (e.g. a newly created one) never
+    // appeared here even though the assignment notification fired.
+    const now = new Date();
+
+    // Active-sprint tasks: user's assigned, not-DONE tasks whose sprint is
+    // currently running, across every ACTIVE project.
+    const activeSprintTasks = await this.prisma.task.findMany({
+      where: {
+        status: { not: TaskStatus.DONE },
+        assignments: { some: { user_id: userId, unassigned_at: null } },
+        project: { status: 'ACTIVE' },
+        sprint: { start_date: { lte: now }, end_date: { gte: now } },
+      },
     });
 
-    let activeSprintTasks: any[] = [];
-    let carryOverTasks: any[] = [];
-
-    if (activeProject) {
-      // Find active sprint
-      const activeSprint = await this.prisma.sprint.findFirst({
-        where: {
-          project_id: activeProject.id,
-          start_date: { lte: new Date() },
-          end_date: { gte: new Date() }
-        }
-      });
-
-      if (activeSprint) {
-        // Fetch user tasks for the active sprint
-        activeSprintTasks = await this.prisma.task.findMany({
-          where: {
-            sprint_id: activeSprint.id,
-            assignments: { some: { user_id: userId, unassigned_at: null } }
-          }
-        });
-
-        // Carry-over: tasks from previous sprints of same project that are NOT DONE
-        carryOverTasks = await this.prisma.task.findMany({
-          where: {
-            project_id: activeProject.id,
-            sprint_id: { not: activeSprint.id },
-            status: { not: TaskStatus.DONE },
-            assignments: { some: { user_id: userId, unassigned_at: null } }
-          }
-        });
-      }
-    }
+    // Carry-over: assigned, not-DONE tasks from sprints that have already ended.
+    const carryOverTasks = await this.prisma.task.findMany({
+      where: {
+        status: { not: TaskStatus.DONE },
+        assignments: { some: { user_id: userId, unassigned_at: null } },
+        project: { status: 'ACTIVE' },
+        sprint: { end_date: { lt: now } },
+      },
+    });
 
     // Fetch active leave request
     const activeLeave = await this.prisma.leaveRequest.findFirst({

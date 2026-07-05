@@ -64,6 +64,57 @@ let AuthService = class AuthService {
             }
         };
     }
+    async changePassword(userId, oldPassword, newPassword) {
+        if (!oldPassword || !newPassword) {
+            throw new common_1.BadRequestException('Sandi lama dan sandi baru wajib diisi');
+        }
+        if (newPassword.length < 8) {
+            throw new common_1.BadRequestException('Sandi baru minimal 8 karakter');
+        }
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new common_1.NotFoundException('Pengguna tidak ditemukan');
+        }
+        const matches = await bcrypt.compare(oldPassword, user.password_hash);
+        if (!matches) {
+            throw new common_1.UnauthorizedException('Sandi lama salah');
+        }
+        if (await bcrypt.compare(newPassword, user.password_hash)) {
+            throw new common_1.BadRequestException('Sandi baru tidak boleh sama dengan sandi lama');
+        }
+        const password_hash = await bcrypt.hash(newPassword, 10);
+        await this.prisma.user.update({ where: { id: userId }, data: { password_hash } });
+        return { message: 'Sandi berhasil diperbarui' };
+    }
+    async updateProfile(userId, body) {
+        const data = {};
+        if (body.fullName !== undefined) {
+            const name = body.fullName.trim();
+            if (!name)
+                throw new common_1.BadRequestException('Nama lengkap tidak boleh kosong');
+            data.full_name = name;
+        }
+        if (body.timezone !== undefined) {
+            const allowed = ['Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'];
+            if (!allowed.includes(body.timezone)) {
+                throw new common_1.BadRequestException(`Zona waktu tidak valid (pilihan: ${allowed.join(', ')})`);
+            }
+            data.timezone = body.timezone;
+        }
+        if (Object.keys(data).length === 0) {
+            throw new common_1.BadRequestException('Tidak ada perubahan yang dikirim');
+        }
+        const user = await this.prisma.user.update({ where: { id: userId }, data });
+        return {
+            id: user.id,
+            email: user.email,
+            fullName: user.full_name,
+            nik: user.nik,
+            roles: user.system_roles,
+            timezone: user.timezone,
+            checkinMode: user.checkin_mode,
+        };
+    }
     async refresh(token) {
         try {
             const payload = await this.jwtService.verifyAsync(token, {

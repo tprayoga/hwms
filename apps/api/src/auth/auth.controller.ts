@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, Res, Get, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Patch, Body, Req, Res, Get, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
@@ -87,5 +87,25 @@ export class AuthController {
       department: user.department ? { id: user.department.id, name: user.department.name } : null,
       functionalRole: user.functional_role ? { id: user.functional_role.id, name: user.functional_role.name, code: user.functional_role.code } : null,
     };
+  }
+
+  // Self-service password change (any authenticated user, own account only).
+  @Post('password/change')
+  async changePassword(
+    @Req() req: Request,
+    @Body() body: { oldPassword?: string; newPassword?: string },
+  ) {
+    const user = req['user'] as any;
+    return this.authService.changePassword(user.id, body.oldPassword || '', body.newPassword || '');
+  }
+
+  // Self-service profile edit (full name & timezone only).
+  @Patch('me')
+  async updateMe(
+    @Req() req: Request,
+    @Body() body: { fullName?: string; timezone?: string },
+  ) {
+    const user = req['user'] as any;
+    return this.authService.updateProfile(user.id, body);
   }
 }
