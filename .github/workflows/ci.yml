@@ -1,0 +1,213 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # pnpm 10.x: reads lockfileVersion 9.0 and runs on Node 20 LTS.
+  PNPM_VERSION: 10
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Security gate. Fails ONLY on CRITICAL advisories (§9 / §11: "gagal jika
+  # critical"). High/moderate are reported but non-blocking.
+  # --------------------------------------------------------------------------
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Report high/moderate advisories (non-blocking)
+        run: pnpm audit --audit-level high || true
+      - name: Fail on CRITICAL advisories
+        run: pnpm audit --audit-level critical
+
+  # --------------------------------------------------------------------------
+  # Typecheck / build all workspaces.
+  # --------------------------------------------------------------------------
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @hwms/shared build
+      - run: pnpm --filter @hwms/api exec prisma generate
+      - run: pnpm --filter @hwms/api build
+      - run: pnpm --filter @hwms/web build
+        env:
+          VITE_API_URL: /api/v1
+
+  # --------------------------------------------------------------------------
+  # Unit + integration tests, INCLUDING the reconciliation gate (Excel vs
+  # system completion, ≤0.5%) and the multi-tenant isolation gates. Requires a
+  # live Postgres + Redis, migrated and seeded with the 456-task workbook.
+  # --------------------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hwms_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hwms_test?schema=public
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+      SKIP_RATE_LIMIT: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @hwms/shared build
+      - run: pnpm --filter @hwms/api exec prisma generate
+      - name: Apply migrations
+        run: pnpm --filter @hwms/api exec prisma migrate deploy
+      - name: Seed demo data (Saft VE POC + 456 tasks + 24 users)
+        run: pnpm --filter @hwms/api exec ts-node prisma/seed/index.ts
+      - name: Run tests (unit + integration + reconciliation + tenant isolation)
+        run: pnpm --filter @hwms/api test
+
+  # --------------------------------------------------------------------------
+  # Full-profile demo seed gate (Fase S6), separate from the core reconciliation
+  # gate above. Runs the umbrella test which: seeds `full` on an empty DB, checks
+  # reconciliation stays green, verifies idempotency (all-table snapshot),
+  # the Saft VE POC guard, holiday/attendance consistency, and FK integrity.
+  # DEV/DEMO data only — never the pilot provisioning path (see prisma/seed/README.md).
+  # --------------------------------------------------------------------------
+  seed-full:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hwms_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hwms_test?schema=public
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+      SKIP_RATE_LIMIT: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @hwms/shared build
+      - run: pnpm --filter @hwms/api exec prisma generate
+      - name: Apply migrations
+        run: pnpm --filter @hwms/api exec prisma migrate deploy
+      - name: Run umbrella seed gate (seeds full internally)
+        run: pnpm --filter @hwms/api exec vitest run prisma/seed/seed.spec.ts
+
+  # --------------------------------------------------------------------------
+  # End-to-end 1-day cycle (Playwright). Boots the real API + Web via the
+  # playwright webServer config. Heavier / slower; runs after `test`.
+  # --------------------------------------------------------------------------
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [test]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hwms_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hwms_test?schema=public
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+      SKIP_RATE_LIMIT: "true"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @hwms/shared build
+      - run: pnpm --filter @hwms/api exec prisma generate
+      - run: pnpm --filter @hwms/api exec prisma migrate deploy
+      - run: pnpm --filter @hwms/api exec ts-node prisma/seed/index.ts
+      # The API entrypoint reads apps/api/.env for DB creds; provide it in CI.
+      - name: Provide API .env
+        run: printf 'DATABASE_URL=%s\nREDIS_HOST=localhost\nREDIS_PORT=6379\nSKIP_RATE_LIMIT=true\n' "$DATABASE_URL" > apps/api/.env
+      - name: Install Playwright browsers
+        run: pnpm --filter @hwms/web exec playwright install --with-deps chromium webkit
+      - name: Run E2E 1-day cycle
+        run: pnpm --filter @hwms/web exec playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7

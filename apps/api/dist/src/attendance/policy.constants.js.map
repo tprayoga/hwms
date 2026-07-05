@@ -1,0 +1,1 @@
+{"version":3,"file":"policy.constants.js","sourceRoot":"","sources":["../../../src/attendance/policy.constants.ts"],"names":[],"mappings":";;;AAAA,2CAA6C;AAahC,QAAA,qBAAqB,GAAG;IACnC,oBAAoB,EAAE,OAAO;IAC7B,kBAAkB,EAAE,OAAO;IAC3B,gBAAgB,EAAE,OAAO;IACzB,oBAAoB,EAAE,oBAAW,CAAC,KAAK;IACvC,iBAAiB,EAAE,CAAC;IACpB,sBAAsB,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC;CACtB,CAAC"}

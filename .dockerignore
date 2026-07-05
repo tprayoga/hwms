@@ -1,0 +1,14 @@
+# Build context hygiene for production images.
+**/node_modules
+**/dist
+**/.turbo
+uploads
+.git
+.github
+docs
+*.log
+.env
+apps/*/.env
+**/.DS_Store
+playwright-report
+test-results

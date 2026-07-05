@@ -1,0 +1,491 @@
+import { PrismaService } from '../prisma/prisma.service';
+export declare class AdminController {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    private getTenantId;
+    getUsers(): Promise<({
+        functional_role: {
+            id: string;
+            tenant_id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            name: string;
+            code: string;
+        } | null;
+        department: {
+            id: string;
+            tenant_id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            name: string;
+        } | null;
+        manager: {
+            id: string;
+            tenant_id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            functional_role_id: string | null;
+            email: string;
+            password_hash: string;
+            full_name: string;
+            nik: string;
+            department_id: string | null;
+            manager_id: string | null;
+            system_roles: import("@prisma/client").$Enums.SystemRole[];
+            timezone: string;
+            checkin_mode: import("@prisma/client").$Enums.CheckinMode;
+            leave_balance: number;
+            employment_status: import("@prisma/client").$Enums.EmploymentStatus;
+            joined_at: Date;
+        } | null;
+    } & {
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        functional_role_id: string | null;
+        email: string;
+        password_hash: string;
+        full_name: string;
+        nik: string;
+        department_id: string | null;
+        manager_id: string | null;
+        system_roles: import("@prisma/client").$Enums.SystemRole[];
+        timezone: string;
+        checkin_mode: import("@prisma/client").$Enums.CheckinMode;
+        leave_balance: number;
+        employment_status: import("@prisma/client").$Enums.EmploymentStatus;
+        joined_at: Date;
+    })[]>;
+    createUser(body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        functional_role_id: string | null;
+        email: string;
+        password_hash: string;
+        full_name: string;
+        nik: string;
+        department_id: string | null;
+        manager_id: string | null;
+        system_roles: import("@prisma/client").$Enums.SystemRole[];
+        timezone: string;
+        checkin_mode: import("@prisma/client").$Enums.CheckinMode;
+        leave_balance: number;
+        employment_status: import("@prisma/client").$Enums.EmploymentStatus;
+        joined_at: Date;
+    }>;
+    updateUser(id: string, body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        functional_role_id: string | null;
+        email: string;
+        password_hash: string;
+        full_name: string;
+        nik: string;
+        department_id: string | null;
+        manager_id: string | null;
+        system_roles: import("@prisma/client").$Enums.SystemRole[];
+        timezone: string;
+        checkin_mode: import("@prisma/client").$Enums.CheckinMode;
+        leave_balance: number;
+        employment_status: import("@prisma/client").$Enums.EmploymentStatus;
+        joined_at: Date;
+    }>;
+    deleteUser(id: string): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        functional_role_id: string | null;
+        email: string;
+        password_hash: string;
+        full_name: string;
+        nik: string;
+        department_id: string | null;
+        manager_id: string | null;
+        system_roles: import("@prisma/client").$Enums.SystemRole[];
+        timezone: string;
+        checkin_mode: import("@prisma/client").$Enums.CheckinMode;
+        leave_balance: number;
+        employment_status: import("@prisma/client").$Enums.EmploymentStatus;
+        joined_at: Date;
+    }>;
+    previewUserImport(file: Express.Multer.File): Promise<{
+        total: number;
+        valid: number;
+        invalid: number;
+        rows: any[];
+    }>;
+    commitUserImport(body: {
+        rows: any[];
+    }): Promise<{
+        message: string;
+        usersCount: number;
+    }>;
+    exportPersonalData(id: string): Promise<{
+        compliance: {
+            regulation: string;
+            exportedAt: string;
+            tenant: string;
+        };
+        personalData: {
+            functional_role: {
+                id: string;
+                tenant_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                name: string;
+                code: string;
+            } | null;
+            department: {
+                id: string;
+                tenant_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                name: string;
+            } | null;
+            checkins: ({
+                standup_items: {
+                    id: string;
+                    tenant_id: string;
+                    created_at: Date;
+                    updated_at: Date;
+                    deleted_at: Date | null;
+                    task_id: string;
+                    checkin_id: string;
+                    note: string | null;
+                    planned: boolean;
+                    percent_after: number | null;
+                    status_after: import("@prisma/client").$Enums.TaskStatus | null;
+                    is_carried_over: boolean;
+                }[];
+            } & {
+                id: string;
+                tenant_id: string;
+                user_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                date: Date;
+                type: import("@prisma/client").$Enums.CheckinType;
+                work_status: import("@prisma/client").$Enums.WorkStatus;
+                client_project_id: string | null;
+                lat: import("@prisma/client/runtime/library").Decimal | null;
+                lng: import("@prisma/client/runtime/library").Decimal | null;
+                gps_accuracy_m: import("@prisma/client/runtime/library").Decimal | null;
+                selfie_key: string | null;
+                is_auto: boolean;
+                is_late: boolean;
+                is_offline_sync: boolean;
+                geofence_ok: boolean;
+                device_timestamp: Date;
+                submitted_at: Date;
+                daily_note: string | null;
+            })[];
+            leave_requests: {
+                id: string;
+                tenant_id: string;
+                user_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                status: import("@prisma/client").$Enums.LeaveStatus;
+                type: import("@prisma/client").$Enums.LeaveType;
+                date_from: Date;
+                date_to: Date;
+                hours: import("@prisma/client/runtime/library").Decimal | null;
+                attachment_key: string | null;
+                reason: string;
+                decided_at: Date | null;
+                decision_note: string | null;
+                escalated_at: Date | null;
+                approver_id: string | null;
+            }[];
+            wfh_quotas: {
+                id: string;
+                tenant_id: string;
+                user_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                week_start: Date;
+                used_days: number;
+            }[];
+            scorecards: {
+                id: string;
+                tenant_id: string;
+                user_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                blockers_reported: number;
+                blockers_resolved: number;
+                period_type: import("@prisma/client").$Enums.ScorecardPeriodType;
+                period_start: Date;
+                weighted_completion: import("@prisma/client/runtime/library").Decimal;
+                tasks_done: number;
+                tasks_total: number;
+                checkin_discipline: import("@prisma/client/runtime/library").Decimal;
+                rag: import("@prisma/client").$Enums.RAGStatus | null;
+            }[];
+            notifications: {
+                id: string;
+                tenant_id: string;
+                user_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                kind: import("@prisma/client").$Enums.NotificationKind;
+                payload_json: import("@prisma/client/runtime/library").JsonValue;
+                read_at: Date | null;
+            }[];
+            audit_logs: {
+                id: string;
+                tenant_id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                at: Date;
+                actor_id: string | null;
+                entity: string;
+                entity_id: string;
+                action: string;
+                before_json: import("@prisma/client/runtime/library").JsonValue | null;
+                after_json: import("@prisma/client/runtime/library").JsonValue | null;
+            }[];
+            id: string;
+            tenant_id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            functional_role_id: string | null;
+            email: string;
+            full_name: string;
+            nik: string;
+            department_id: string | null;
+            manager_id: string | null;
+            system_roles: import("@prisma/client").$Enums.SystemRole[];
+            timezone: string;
+            checkin_mode: import("@prisma/client").$Enums.CheckinMode;
+            leave_balance: number;
+            employment_status: import("@prisma/client").$Enums.EmploymentStatus;
+            joined_at: Date;
+        };
+    }>;
+    getLocations(): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        type: import("@prisma/client").$Enums.LocationType;
+        lat: import("@prisma/client/runtime/library").Decimal | null;
+        lng: import("@prisma/client/runtime/library").Decimal | null;
+        radius_m: number;
+    }[]>;
+    createLocation(body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        type: import("@prisma/client").$Enums.LocationType;
+        lat: import("@prisma/client/runtime/library").Decimal | null;
+        lng: import("@prisma/client/runtime/library").Decimal | null;
+        radius_m: number;
+    }>;
+    updateLocation(id: string, body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        type: import("@prisma/client").$Enums.LocationType;
+        lat: import("@prisma/client/runtime/library").Decimal | null;
+        lng: import("@prisma/client/runtime/library").Decimal | null;
+        radius_m: number;
+    }>;
+    deleteLocation(id: string): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        type: import("@prisma/client").$Enums.LocationType;
+        lat: import("@prisma/client/runtime/library").Decimal | null;
+        lng: import("@prisma/client/runtime/library").Decimal | null;
+        radius_m: number;
+    }>;
+    getHolidays(): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        date: Date;
+        is_cuti_bersama: boolean;
+    }[]>;
+    createHoliday(body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        date: Date;
+        is_cuti_bersama: boolean;
+    }>;
+    updateHoliday(id: string, body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        date: Date;
+        is_cuti_bersama: boolean;
+    }>;
+    deleteHoliday(id: string): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        date: Date;
+        is_cuti_bersama: boolean;
+    }>;
+    getDepartments(): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+    }[]>;
+    createDepartment(body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+    }>;
+    updateDepartment(id: string, body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+    }>;
+    deleteDepartment(id: string): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+    }>;
+    getTeams(): Promise<({
+        project: {
+            id: string;
+            tenant_id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            name: string;
+            status: import("@prisma/client").$Enums.ProjectStatus;
+            code_prefix: string;
+        } | null;
+    } & {
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        project_id: string | null;
+    })[]>;
+    createTeam(body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        project_id: string | null;
+    }>;
+    updateTeam(id: string, body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        project_id: string | null;
+    }>;
+    deleteTeam(id: string): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        project_id: string | null;
+    }>;
+    getFunctionalRoles(): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        code: string;
+    }[]>;
+    createFunctionalRole(body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        code: string;
+    }>;
+    updateFunctionalRole(id: string, body: any): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        code: string;
+    }>;
+    deleteFunctionalRole(id: string): Promise<{
+        id: string;
+        tenant_id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
+        name: string;
+        code: string;
+    }>;
+}

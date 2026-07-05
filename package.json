@@ -1,0 +1,13 @@
+{
+  "name": "hwms-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"api,web\" -c \"cyan,green\" \"pnpm --filter @hwms/api dev\" \"pnpm --filter @hwms/web dev\"",
+    "build": "pnpm --filter @hwms/shared build && pnpm --filter @hwms/api build && pnpm --filter @hwms/web build",
+    "test": "pnpm --filter @hwms/api test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
