@@ -9,13 +9,14 @@ export declare class LeaveService {
     private calculateLeaveDays;
     applyLeave(userId: string, body: any, file?: Express.Multer.File): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: Prisma.Decimal | null;
@@ -24,17 +25,17 @@ export declare class LeaveService {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }>;
     getMyLeaveRequests(userId: string): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: Prisma.Decimal | null;
@@ -43,24 +44,24 @@ export declare class LeaveService {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }[]>;
     getApprovalsInbox(userId: string): Promise<({
         requester: {
-            id: string;
             email: string;
+            id: string;
             full_name: string;
             leave_balance: number;
         };
     } & {
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: Prisma.Decimal | null;
@@ -69,17 +70,17 @@ export declare class LeaveService {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     })[]>;
     decideLeaveRequest(approverId: string, requestId: string, body: any): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: Prisma.Decimal | null;
@@ -88,17 +89,17 @@ export declare class LeaveService {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }>;
     cancelLeaveRequest(userId: string, requestId: string): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: Prisma.Decimal | null;
@@ -107,6 +108,5 @@ export declare class LeaveService {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }>;
 }

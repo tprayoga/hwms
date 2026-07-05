@@ -10,21 +10,21 @@ export declare class AttendanceController {
     getToday(req: any): Promise<{
         todayCheckin: {
             id: string;
-            tenant_id: string;
-            user_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            date: Date;
+            tenant_id: string;
             type: import("@prisma/client").$Enums.CheckinType;
+            is_late: boolean;
+            is_auto: boolean;
+            date: Date;
+            user_id: string;
             work_status: import("@prisma/client").$Enums.WorkStatus;
             client_project_id: string | null;
             lat: import("@prisma/client/runtime/library").Decimal | null;
             lng: import("@prisma/client/runtime/library").Decimal | null;
             gps_accuracy_m: import("@prisma/client/runtime/library").Decimal | null;
             selfie_key: string | null;
-            is_auto: boolean;
-            is_late: boolean;
             is_offline_sync: boolean;
             geofence_ok: boolean;
             device_timestamp: Date;
@@ -33,21 +33,21 @@ export declare class AttendanceController {
         } | null;
         checkout: {
             id: string;
-            tenant_id: string;
-            user_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            date: Date;
+            tenant_id: string;
             type: import("@prisma/client").$Enums.CheckinType;
+            is_late: boolean;
+            is_auto: boolean;
+            date: Date;
+            user_id: string;
             work_status: import("@prisma/client").$Enums.WorkStatus;
             client_project_id: string | null;
             lat: import("@prisma/client/runtime/library").Decimal | null;
             lng: import("@prisma/client/runtime/library").Decimal | null;
             gps_accuracy_m: import("@prisma/client/runtime/library").Decimal | null;
             selfie_key: string | null;
-            is_auto: boolean;
-            is_late: boolean;
             is_offline_sync: boolean;
             geofence_ok: boolean;
             device_timestamp: Date;
@@ -56,10 +56,10 @@ export declare class AttendanceController {
         } | null;
         policy: {
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
+            tenant_id: string;
             scope_type: import("@prisma/client").$Enums.PolicyScopeType;
             scope_id: string;
             wfh_days_per_week: number;

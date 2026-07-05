@@ -27,10 +27,10 @@ export declare class AttendanceService {
     calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number;
     getEffectivePolicy(user: any): Promise<{
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
         scope_type: import("@prisma/client").$Enums.PolicyScopeType;
         scope_id: string;
         wfh_days_per_week: number;
@@ -50,21 +50,21 @@ export declare class AttendanceService {
     getTodayStatus(userId: string): Promise<{
         todayCheckin: {
             id: string;
-            tenant_id: string;
-            user_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            date: Date;
+            tenant_id: string;
             type: import("@prisma/client").$Enums.CheckinType;
+            is_late: boolean;
+            is_auto: boolean;
+            date: Date;
+            user_id: string;
             work_status: import("@prisma/client").$Enums.WorkStatus;
             client_project_id: string | null;
             lat: Prisma.Decimal | null;
             lng: Prisma.Decimal | null;
             gps_accuracy_m: Prisma.Decimal | null;
             selfie_key: string | null;
-            is_auto: boolean;
-            is_late: boolean;
             is_offline_sync: boolean;
             geofence_ok: boolean;
             device_timestamp: Date;
@@ -73,21 +73,21 @@ export declare class AttendanceService {
         } | null;
         checkout: {
             id: string;
-            tenant_id: string;
-            user_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            date: Date;
+            tenant_id: string;
             type: import("@prisma/client").$Enums.CheckinType;
+            is_late: boolean;
+            is_auto: boolean;
+            date: Date;
+            user_id: string;
             work_status: import("@prisma/client").$Enums.WorkStatus;
             client_project_id: string | null;
             lat: Prisma.Decimal | null;
             lng: Prisma.Decimal | null;
             gps_accuracy_m: Prisma.Decimal | null;
             selfie_key: string | null;
-            is_auto: boolean;
-            is_late: boolean;
             is_offline_sync: boolean;
             geofence_ok: boolean;
             device_timestamp: Date;
@@ -96,10 +96,10 @@ export declare class AttendanceService {
         } | null;
         policy: {
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
+            tenant_id: string;
             scope_type: import("@prisma/client").$Enums.PolicyScopeType;
             scope_id: string;
             wfh_days_per_week: number;
@@ -124,21 +124,21 @@ export declare class AttendanceService {
     }>;
     checkin(userId: string, fileKey: string, body: any, force?: boolean): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        date: Date;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.CheckinType;
+        is_late: boolean;
+        is_auto: boolean;
+        date: Date;
+        user_id: string;
         work_status: import("@prisma/client").$Enums.WorkStatus;
         client_project_id: string | null;
         lat: Prisma.Decimal | null;
         lng: Prisma.Decimal | null;
         gps_accuracy_m: Prisma.Decimal | null;
         selfie_key: string | null;
-        is_auto: boolean;
-        is_late: boolean;
         is_offline_sync: boolean;
         geofence_ok: boolean;
         device_timestamp: Date;
@@ -147,21 +147,21 @@ export declare class AttendanceService {
     }>;
     checkout(userId: string, checkinId: string, fileKey: string, body: any): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        date: Date;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.CheckinType;
+        is_late: boolean;
+        is_auto: boolean;
+        date: Date;
+        user_id: string;
         work_status: import("@prisma/client").$Enums.WorkStatus;
         client_project_id: string | null;
         lat: Prisma.Decimal | null;
         lng: Prisma.Decimal | null;
         gps_accuracy_m: Prisma.Decimal | null;
         selfie_key: string | null;
-        is_auto: boolean;
-        is_late: boolean;
         is_offline_sync: boolean;
         geofence_ok: boolean;
         device_timestamp: Date;

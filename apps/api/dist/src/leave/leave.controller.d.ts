@@ -5,13 +5,14 @@ export declare class LeaveController {
     private validateAttachmentUpload;
     applyLeave(req: any, file: Express.Multer.File, body: any): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: import("@prisma/client/runtime/library").Decimal | null;
@@ -20,17 +21,17 @@ export declare class LeaveController {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }>;
     getMyLeaveRequests(req: any): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: import("@prisma/client/runtime/library").Decimal | null;
@@ -39,24 +40,24 @@ export declare class LeaveController {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }[]>;
     getApprovalsInbox(req: any): Promise<({
         requester: {
-            id: string;
             email: string;
+            id: string;
             full_name: string;
             leave_balance: number;
         };
     } & {
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: import("@prisma/client/runtime/library").Decimal | null;
@@ -65,17 +66,17 @@ export declare class LeaveController {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     })[]>;
     decideLeaveRequest(requestId: string, req: any, body: any): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: import("@prisma/client/runtime/library").Decimal | null;
@@ -84,17 +85,17 @@ export declare class LeaveController {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }>;
     cancelLeaveRequest(requestId: string, req: any): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.LeaveStatus;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LeaveType;
+        user_id: string;
+        status: import("@prisma/client").$Enums.LeaveStatus;
+        approver_id: string | null;
         date_from: Date;
         date_to: Date;
         hours: import("@prisma/client/runtime/library").Decimal | null;
@@ -103,7 +104,6 @@ export declare class LeaveController {
         decided_at: Date | null;
         decision_note: string | null;
         escalated_at: Date | null;
-        approver_id: string | null;
     }>;
     getAttachment(key: string, res: any): void;
 }

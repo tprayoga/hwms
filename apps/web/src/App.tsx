@@ -3872,6 +3872,10 @@ export default function App() {
             </tbody>
           </table>
         </div>
+
+        {/* Assign Owner modal — must be mounted in this view too, not only in
+            renderAdminView, otherwise the Assign button here opens nothing. */}
+        {assignModalOpen && renderAssignModal()}
       </div>
     );
   };

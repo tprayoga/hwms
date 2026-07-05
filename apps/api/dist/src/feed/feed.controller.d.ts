@@ -13,15 +13,15 @@ export declare class FeedController {
         message: string;
         blocker: {
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
+            tenant_id: string;
+            status: import("@prisma/client").$Enums.BlockerStatus;
             task_id: string;
             reported_by: string;
             description: string;
             mentioned_user_ids: string[];
-            status: import("@prisma/client").$Enums.BlockerStatus;
             opened_at: Date;
             resolved_at: Date | null;
             resolved_by: string | null;

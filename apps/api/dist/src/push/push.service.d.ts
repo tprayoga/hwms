@@ -11,14 +11,14 @@ export declare class PushService implements OnModuleInit {
     getPublicKey(): string;
     saveSubscription(userId: string, subscription: any, userAgent?: string): Promise<{
         id: string;
+        created_at: Date;
+        updated_at: Date;
+        deleted_at: Date | null;
         tenant_id: string;
         user_id: string;
         endpoint: string;
         keys_json: import("@prisma/client/runtime/library").JsonValue;
         user_agent: string | null;
-        created_at: Date;
-        updated_at: Date;
-        deleted_at: Date | null;
     }>;
     unsubscribe(endpoint: string): Promise<void>;
     sendPushNotification(userId: string, payload: {
@@ -28,11 +28,11 @@ export declare class PushService implements OnModuleInit {
     }): Promise<void>;
     getNotifications(userId: string): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
+        user_id: string;
         kind: import("@prisma/client").$Enums.NotificationKind;
         payload_json: import("@prisma/client/runtime/library").JsonValue;
         read_at: Date | null;

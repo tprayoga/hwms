@@ -4,35 +4,26 @@ export declare class AdminController {
     constructor(prisma: PrismaService);
     private getTenantId;
     getUsers(): Promise<({
-        functional_role: {
-            id: string;
-            tenant_id: string;
-            created_at: Date;
-            updated_at: Date;
-            deleted_at: Date | null;
-            name: string;
-            code: string;
-        } | null;
         department: {
+            name: string;
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            name: string;
+            tenant_id: string;
         } | null;
         manager: {
+            email: string;
+            nik: string;
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            functional_role_id: string | null;
-            email: string;
+            tenant_id: string;
             password_hash: string;
             full_name: string;
-            nik: string;
             department_id: string | null;
+            functional_role_id: string | null;
             manager_id: string | null;
             system_roles: import("@prisma/client").$Enums.SystemRole[];
             timezone: string;
@@ -41,18 +32,27 @@ export declare class AdminController {
             employment_status: import("@prisma/client").$Enums.EmploymentStatus;
             joined_at: Date;
         } | null;
+        functional_role: {
+            name: string;
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            tenant_id: string;
+            code: string;
+        } | null;
     } & {
+        email: string;
+        nik: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        functional_role_id: string | null;
-        email: string;
+        tenant_id: string;
         password_hash: string;
         full_name: string;
-        nik: string;
         department_id: string | null;
+        functional_role_id: string | null;
         manager_id: string | null;
         system_roles: import("@prisma/client").$Enums.SystemRole[];
         timezone: string;
@@ -62,17 +62,17 @@ export declare class AdminController {
         joined_at: Date;
     })[]>;
     createUser(body: any): Promise<{
+        email: string;
+        nik: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        functional_role_id: string | null;
-        email: string;
+        tenant_id: string;
         password_hash: string;
         full_name: string;
-        nik: string;
         department_id: string | null;
+        functional_role_id: string | null;
         manager_id: string | null;
         system_roles: import("@prisma/client").$Enums.SystemRole[];
         timezone: string;
@@ -82,17 +82,17 @@ export declare class AdminController {
         joined_at: Date;
     }>;
     updateUser(id: string, body: any): Promise<{
+        email: string;
+        nik: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        functional_role_id: string | null;
-        email: string;
+        tenant_id: string;
         password_hash: string;
         full_name: string;
-        nik: string;
         department_id: string | null;
+        functional_role_id: string | null;
         manager_id: string | null;
         system_roles: import("@prisma/client").$Enums.SystemRole[];
         timezone: string;
@@ -102,17 +102,17 @@ export declare class AdminController {
         joined_at: Date;
     }>;
     deleteUser(id: string): Promise<{
+        email: string;
+        nik: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        functional_role_id: string | null;
-        email: string;
+        tenant_id: string;
         password_hash: string;
         full_name: string;
-        nik: string;
         department_id: string | null;
+        functional_role_id: string | null;
         manager_id: string | null;
         system_roles: import("@prisma/client").$Enums.SystemRole[];
         timezone: string;
@@ -140,30 +140,13 @@ export declare class AdminController {
             tenant: string;
         };
         personalData: {
-            functional_role: {
-                id: string;
-                tenant_id: string;
-                created_at: Date;
-                updated_at: Date;
-                deleted_at: Date | null;
-                name: string;
-                code: string;
-            } | null;
-            department: {
-                id: string;
-                tenant_id: string;
-                created_at: Date;
-                updated_at: Date;
-                deleted_at: Date | null;
-                name: string;
-            } | null;
             checkins: ({
                 standup_items: {
                     id: string;
-                    tenant_id: string;
                     created_at: Date;
                     updated_at: Date;
                     deleted_at: Date | null;
+                    tenant_id: string;
                     task_id: string;
                     checkin_id: string;
                     note: string | null;
@@ -174,21 +157,21 @@ export declare class AdminController {
                 }[];
             } & {
                 id: string;
-                tenant_id: string;
-                user_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
-                date: Date;
+                tenant_id: string;
                 type: import("@prisma/client").$Enums.CheckinType;
+                is_late: boolean;
+                is_auto: boolean;
+                date: Date;
+                user_id: string;
                 work_status: import("@prisma/client").$Enums.WorkStatus;
                 client_project_id: string | null;
                 lat: import("@prisma/client/runtime/library").Decimal | null;
                 lng: import("@prisma/client/runtime/library").Decimal | null;
                 gps_accuracy_m: import("@prisma/client/runtime/library").Decimal | null;
                 selfie_key: string | null;
-                is_auto: boolean;
-                is_late: boolean;
                 is_offline_sync: boolean;
                 geofence_ok: boolean;
                 device_timestamp: Date;
@@ -197,13 +180,14 @@ export declare class AdminController {
             })[];
             leave_requests: {
                 id: string;
-                tenant_id: string;
-                user_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
-                status: import("@prisma/client").$Enums.LeaveStatus;
+                tenant_id: string;
                 type: import("@prisma/client").$Enums.LeaveType;
+                user_id: string;
+                status: import("@prisma/client").$Enums.LeaveStatus;
+                approver_id: string | null;
                 date_from: Date;
                 date_to: Date;
                 hours: import("@prisma/client/runtime/library").Decimal | null;
@@ -212,29 +196,28 @@ export declare class AdminController {
                 decided_at: Date | null;
                 decision_note: string | null;
                 escalated_at: Date | null;
-                approver_id: string | null;
             }[];
             wfh_quotas: {
                 id: string;
-                tenant_id: string;
-                user_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
+                tenant_id: string;
+                user_id: string;
                 week_start: Date;
                 used_days: number;
             }[];
             scorecards: {
                 id: string;
-                tenant_id: string;
-                user_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
+                tenant_id: string;
                 blockers_reported: number;
                 blockers_resolved: number;
-                period_type: import("@prisma/client").$Enums.ScorecardPeriodType;
+                user_id: string;
                 period_start: Date;
+                period_type: import("@prisma/client").$Enums.ScorecardPeriodType;
                 weighted_completion: import("@prisma/client/runtime/library").Decimal;
                 tasks_done: number;
                 tasks_total: number;
@@ -243,21 +226,21 @@ export declare class AdminController {
             }[];
             notifications: {
                 id: string;
-                tenant_id: string;
-                user_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
+                tenant_id: string;
+                user_id: string;
                 kind: import("@prisma/client").$Enums.NotificationKind;
                 payload_json: import("@prisma/client/runtime/library").JsonValue;
                 read_at: Date | null;
             }[];
             audit_logs: {
                 id: string;
-                tenant_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
+                tenant_id: string;
                 at: Date;
                 actor_id: string | null;
                 entity: string;
@@ -266,16 +249,33 @@ export declare class AdminController {
                 before_json: import("@prisma/client/runtime/library").JsonValue | null;
                 after_json: import("@prisma/client/runtime/library").JsonValue | null;
             }[];
+            department: {
+                name: string;
+                id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                tenant_id: string;
+            } | null;
+            functional_role: {
+                name: string;
+                id: string;
+                created_at: Date;
+                updated_at: Date;
+                deleted_at: Date | null;
+                tenant_id: string;
+                code: string;
+            } | null;
+            email: string;
+            nik: string;
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            functional_role_id: string | null;
-            email: string;
+            tenant_id: string;
             full_name: string;
-            nik: string;
             department_id: string | null;
+            functional_role_id: string | null;
             manager_id: string | null;
             system_roles: import("@prisma/client").$Enums.SystemRole[];
             timezone: string;
@@ -286,206 +286,206 @@ export declare class AdminController {
         };
     }>;
     getLocations(): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LocationType;
         lat: import("@prisma/client/runtime/library").Decimal | null;
         lng: import("@prisma/client/runtime/library").Decimal | null;
         radius_m: number;
     }[]>;
     createLocation(body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LocationType;
         lat: import("@prisma/client/runtime/library").Decimal | null;
         lng: import("@prisma/client/runtime/library").Decimal | null;
         radius_m: number;
     }>;
     updateLocation(id: string, body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LocationType;
         lat: import("@prisma/client/runtime/library").Decimal | null;
         lng: import("@prisma/client/runtime/library").Decimal | null;
         radius_m: number;
     }>;
     deleteLocation(id: string): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         type: import("@prisma/client").$Enums.LocationType;
         lat: import("@prisma/client/runtime/library").Decimal | null;
         lng: import("@prisma/client/runtime/library").Decimal | null;
         radius_m: number;
     }>;
     getHolidays(): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         date: Date;
         is_cuti_bersama: boolean;
     }[]>;
     createHoliday(body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         date: Date;
         is_cuti_bersama: boolean;
     }>;
     updateHoliday(id: string, body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         date: Date;
         is_cuti_bersama: boolean;
     }>;
     deleteHoliday(id: string): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         date: Date;
         is_cuti_bersama: boolean;
     }>;
     getDepartments(): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
     }[]>;
     createDepartment(body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
     }>;
     updateDepartment(id: string, body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
     }>;
     deleteDepartment(id: string): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
     }>;
     getTeams(): Promise<({
         project: {
+            name: string;
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            name: string;
+            tenant_id: string;
             status: import("@prisma/client").$Enums.ProjectStatus;
             code_prefix: string;
         } | null;
     } & {
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         project_id: string | null;
     })[]>;
     createTeam(body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         project_id: string | null;
     }>;
     updateTeam(id: string, body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         project_id: string | null;
     }>;
     deleteTeam(id: string): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         project_id: string | null;
     }>;
     getFunctionalRoles(): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         code: string;
     }[]>;
     createFunctionalRole(body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         code: string;
     }>;
     updateFunctionalRole(id: string, body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         code: string;
     }>;
     deleteFunctionalRole(id: string): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         code: string;
     }>;
 }

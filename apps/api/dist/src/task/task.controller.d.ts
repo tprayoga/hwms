@@ -5,63 +5,63 @@ export declare class TaskController {
     private readonly aggregationService;
     constructor(taskService: TaskService, aggregationService: TaskAggregationService);
     getProjects(): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         status: import("@prisma/client").$Enums.ProjectStatus;
         code_prefix: string;
     }[]>;
     createProject(body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         status: import("@prisma/client").$Enums.ProjectStatus;
         code_prefix: string;
     }>;
     updateProject(id: string, body: any): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         status: import("@prisma/client").$Enums.ProjectStatus;
         code_prefix: string;
     }>;
     deleteProject(id: string): Promise<{
+        name: string;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        name: string;
+        tenant_id: string;
         status: import("@prisma/client").$Enums.ProjectStatus;
         code_prefix: string;
     }>;
     getSprints(): Promise<({
         project: {
+            name: string;
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
-            name: string;
+            tenant_id: string;
             status: import("@prisma/client").$Enums.ProjectStatus;
             code_prefix: string;
         };
     } & {
         number: number;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
         project_id: string;
         start_date: Date;
         end_date: Date;
@@ -70,10 +70,10 @@ export declare class TaskController {
     createSprint(body: any): Promise<{
         number: number;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
         project_id: string;
         start_date: Date;
         end_date: Date;
@@ -82,10 +82,10 @@ export declare class TaskController {
     updateSprint(id: string, body: any): Promise<{
         number: number;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
         project_id: string;
         start_date: Date;
         end_date: Date;
@@ -94,60 +94,75 @@ export declare class TaskController {
     deleteSprint(id: string): Promise<{
         number: number;
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
         project_id: string;
         start_date: Date;
         end_date: Date;
         goal: string | null;
     }>;
     getTasks(sprintId?: string, projectId?: string, status?: string, priority?: string, myTasks?: string, req?: any): Promise<({
-        sprint: {
-            number: number;
+        blockers: {
             id: string;
-            tenant_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
+            tenant_id: string;
+            status: import("@prisma/client").$Enums.BlockerStatus;
+            task_id: string;
+            reported_by: string;
+            description: string;
+            mentioned_user_ids: string[];
+            opened_at: Date;
+            resolved_at: Date | null;
+            resolved_by: string | null;
+        }[];
+        functional_role: {
+            name: string;
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            tenant_id: string;
+            code: string;
+        } | null;
+        project: {
+            name: string;
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            tenant_id: string;
+            status: import("@prisma/client").$Enums.ProjectStatus;
+            code_prefix: string;
+        };
+        sprint: {
+            number: number;
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
+            tenant_id: string;
             project_id: string;
             start_date: Date;
             end_date: Date;
             goal: string | null;
         };
-        project: {
-            id: string;
-            tenant_id: string;
-            created_at: Date;
-            updated_at: Date;
-            deleted_at: Date | null;
-            name: string;
-            status: import("@prisma/client").$Enums.ProjectStatus;
-            code_prefix: string;
-        };
-        functional_role: {
-            id: string;
-            tenant_id: string;
-            created_at: Date;
-            updated_at: Date;
-            deleted_at: Date | null;
-            name: string;
-            code: string;
-        } | null;
         assignments: ({
             user: {
+                email: string;
+                nik: string;
                 id: string;
-                tenant_id: string;
                 created_at: Date;
                 updated_at: Date;
                 deleted_at: Date | null;
-                functional_role_id: string | null;
-                email: string;
+                tenant_id: string;
                 password_hash: string;
                 full_name: string;
-                nik: string;
                 department_id: string | null;
+                functional_role_id: string | null;
                 manager_id: string | null;
                 system_roles: import("@prisma/client").$Enums.SystemRole[];
                 timezone: string;
@@ -158,41 +173,26 @@ export declare class TaskController {
             };
         } & {
             id: string;
+            created_at: Date;
+            updated_at: Date;
+            deleted_at: Date | null;
             tenant_id: string;
             user_id: string;
-            created_at: Date;
-            updated_at: Date;
-            deleted_at: Date | null;
             task_id: string;
-            unassigned_at: Date | null;
             assigned_at: Date;
+            unassigned_at: Date | null;
         })[];
-        blockers: {
-            id: string;
-            tenant_id: string;
-            created_at: Date;
-            updated_at: Date;
-            deleted_at: Date | null;
-            task_id: string;
-            reported_by: string;
-            description: string;
-            mentioned_user_ids: string[];
-            status: import("@prisma/client").$Enums.BlockerStatus;
-            opened_at: Date;
-            resolved_at: Date | null;
-            resolved_by: string | null;
-        }[];
     } & {
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.TaskStatus;
-        sprint_id: string;
-        project_id: string;
-        functional_role_id: string | null;
+        tenant_id: string;
         code: string;
+        functional_role_id: string | null;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        project_id: string;
+        sprint_id: string;
         workstream: string;
         title: string;
         deliverable: string | null;
@@ -210,15 +210,15 @@ export declare class TaskController {
     })[]>;
     createTask(body: any): Promise<{
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.TaskStatus;
-        sprint_id: string;
-        project_id: string;
-        functional_role_id: string | null;
+        tenant_id: string;
         code: string;
+        functional_role_id: string | null;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        project_id: string;
+        sprint_id: string;
         workstream: string;
         title: string;
         deliverable: string | null;
@@ -237,26 +237,26 @@ export declare class TaskController {
     updateTask(id: string, body: any): Promise<{
         assignments: {
             id: string;
-            tenant_id: string;
-            user_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
+            tenant_id: string;
+            user_id: string;
             task_id: string;
-            unassigned_at: Date | null;
             assigned_at: Date;
+            unassigned_at: Date | null;
         }[];
     } & {
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.TaskStatus;
-        sprint_id: string;
-        project_id: string;
-        functional_role_id: string | null;
+        tenant_id: string;
         code: string;
+        functional_role_id: string | null;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        project_id: string;
+        sprint_id: string;
         workstream: string;
         title: string;
         deliverable: string | null;
@@ -275,26 +275,26 @@ export declare class TaskController {
     deleteTask(id: string): Promise<{
         assignments: {
             id: string;
-            tenant_id: string;
-            user_id: string;
             created_at: Date;
             updated_at: Date;
             deleted_at: Date | null;
+            tenant_id: string;
+            user_id: string;
             task_id: string;
-            unassigned_at: Date | null;
             assigned_at: Date;
+            unassigned_at: Date | null;
         }[];
     } & {
         id: string;
-        tenant_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
-        status: import("@prisma/client").$Enums.TaskStatus;
-        sprint_id: string;
-        project_id: string;
-        functional_role_id: string | null;
+        tenant_id: string;
         code: string;
+        functional_role_id: string | null;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        project_id: string;
+        sprint_id: string;
         workstream: string;
         title: string;
         deliverable: string | null;
@@ -311,20 +311,20 @@ export declare class TaskController {
         notes: string | null;
     }>;
     getAssignableUsers(): Promise<{
-        id: string;
         email: string;
+        id: string;
         full_name: string;
     }[]>;
     assignOwner(id: string, userId: string): Promise<{
         id: string;
-        tenant_id: string;
-        user_id: string;
         created_at: Date;
         updated_at: Date;
         deleted_at: Date | null;
+        tenant_id: string;
+        user_id: string;
         task_id: string;
-        unassigned_at: Date | null;
         assigned_at: Date;
+        unassigned_at: Date | null;
     }>;
     previewImport(file: Express.Multer.File, projectId: string): Promise<{
         projectId: string;
