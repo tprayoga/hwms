@@ -867,12 +867,12 @@ export default function App() {
           const initialStatuses: Record<string, string> = {};
           const initialEvidences: Record<string, string> = {};
           
-          data.activeSprintTasks.forEach((t: any) => {
+          (data.activeSprintTasks || []).forEach((t: any) => {
             initialPercents[t.id] = t.percent_complete;
             initialStatuses[t.id] = t.status;
             initialEvidences[t.id] = '';
           });
-          data.carryOverTasks.forEach((t: any) => {
+          (data.carryOverTasks || []).forEach((t: any) => {
             initialPercents[t.id] = t.percent_complete;
             initialStatuses[t.id] = t.status;
             initialEvidences[t.id] = '';
@@ -884,7 +884,7 @@ export default function App() {
         } else {
           // Pre-check carry-over tasks
           const initialChecks: Record<string, boolean> = {};
-          data.carryOverTasks.forEach((t: any) => {
+          (data.carryOverTasks || []).forEach((t: any) => {
             initialChecks[t.id] = true; // carry over pre-checked
           });
           setCheckinSelectedTaskIds(initialChecks);
@@ -1510,8 +1510,10 @@ export default function App() {
     let fileName: string;
 
     if (importType === 'users') {
-      headers = ['Full Name', 'Email', 'NIK', 'Department', 'Role', 'Manager Email', 'Timezone'];
-      example = ['Budi Santoso', 'budi@indotek.co.id', '3201234567890001', 'Engineering', 'BE', 'atasan@indotek.co.id', 'Asia/Jakarta'];
+      // Header WAJIB sama persis dengan yang dibaca parser backend
+      // (admin.controller.ts previewUserImport), yang berbahasa Indonesia.
+      headers = ['Email', 'Nama Lengkap', 'NIK', 'Departemen', 'Peran Fungsional', 'Zona Waktu', 'Check-in Mode', 'Email Atasan', 'Sandi'];
+      example = ['budi@indotek.co.id', 'Budi Santoso', 'EMP-100', 'Engineering', 'BE', 'Asia/Jakarta', 'TWICE', 'manager.eng@indotek.com', 'Rahasia123'];
       fileName = 'template_import_karyawan.xlsx';
     } else {
       headers = ['Sprint', 'Workstream', 'Task', 'Deliverable', 'Priority', 'Planned Start', 'Planned End', 'Role', 'Owner', 'Status', '% Complete', 'Weight', 'Risk Level', 'Notes'];
@@ -2147,7 +2149,9 @@ export default function App() {
       );
     }
 
-    const { todayCheckin, checkout, policy, activeSprintTasks, carryOverTasks } = todayData;
+    // Default arrays: guard against a response shape missing these fields so a
+    // partial/stale API response can never blank the whole app on .map().
+    const { todayCheckin, checkout, policy, activeSprintTasks = [], carryOverTasks = [] } = todayData;
 
     if (todayData.isOnLeave) {
       return (
