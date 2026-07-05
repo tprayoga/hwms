@@ -1,0 +1,4 @@
+Email,Nama Lengkap,NIK,Departemen,Peran Fungsional,Peran Sistem,Zona Waktu,Check-in Mode,Email Atasan,Sandi
+budi@posbakum.local,Budi Santoso,EMP-100,Engineering,BE,EMPLOYEE,Asia/Jakarta,TWICE,manager.eng@indotek.com,Rahasia123
+siti@posbakum.local,Siti Aminah,EMP-101,HR,Sales,HR;MANAGER,Asia/Jakarta,TWICE,,Rahasia123
+andi@posbakum.local,Andi Wijaya,EMP-102,Engineering,QA,EMPLOYEE,Asia/Makassar,ONCE,manager.eng@indotek.com,Rahasia123
