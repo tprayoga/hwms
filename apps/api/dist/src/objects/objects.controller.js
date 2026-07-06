@@ -22,14 +22,30 @@ let ObjectsController = class ObjectsController {
     constructor(objectsService) {
         this.objectsService = objectsService;
     }
-    async getSelfie(attendanceId, reason, req) {
-        return this.objectsService.getSelfieUrl(req.user, attendanceId, reason);
+    async getSelfie(attendanceId, reason, req, res) {
+        const { buffer, contentType } = await this.objectsService.getSelfieBytes(req.user, attendanceId, reason);
+        res.set({
+            'Content-Type': contentType,
+            'Cache-Control': 'private, max-age=300',
+            'Content-Length': String(buffer.length),
+        });
+        res.send(buffer);
     }
-    async getEvidence(taskId, key, req) {
+    async getEvidence(taskId, key, req, res) {
         if (!key) {
             throw new common_1.BadRequestException('Kunci bukti tidak valid');
         }
-        return this.objectsService.getEvidenceUrl(req.user, taskId, key);
+        const r = await this.objectsService.getEvidenceResource(req.user, taskId, key);
+        if (r.kind === 'LINK') {
+            res.redirect(302, r.url);
+            return;
+        }
+        res.set({
+            'Content-Type': r.contentType,
+            'Cache-Control': 'private, max-age=300',
+            'Content-Length': String(r.buffer.length),
+        });
+        res.send(r.buffer);
     }
 };
 exports.ObjectsController = ObjectsController;
@@ -38,8 +54,9 @@ __decorate([
     __param(0, (0, common_1.Param)('attendanceId')),
     __param(1, (0, common_1.Query)('reason')),
     __param(2, (0, common_1.Req)()),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:paramtypes", [String, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ObjectsController.prototype, "getSelfie", null);
 __decorate([
@@ -48,8 +65,9 @@ __decorate([
     __param(0, (0, common_1.Param)('taskId')),
     __param(1, (0, common_1.Param)('key')),
     __param(2, (0, common_1.Req)()),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:paramtypes", [String, String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ObjectsController.prototype, "getEvidence", null);
 exports.ObjectsController = ObjectsController = __decorate([

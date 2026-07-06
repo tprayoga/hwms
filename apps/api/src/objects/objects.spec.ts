@@ -68,7 +68,7 @@ describe('Objects: presigned selfie/evidence access', () => {
     const storage = new StorageService();
     const objectAccess = new ObjectAccessService(storage);
     const attendance = new AttendanceService(prisma, new RedisService());
-    objects = new ObjectsService(prisma, attendance, objectAccess);
+    objects = new ObjectsService(prisma, attendance, objectAccess, storage);
 
     await cleanup();
     const tenantA = await prisma.tenant.create({ data: { name: 'Obj A', slug: slugs[0], is_active: true } });

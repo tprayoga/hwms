@@ -1,18 +1,16 @@
 import { Controller, Post, Get, Body, Req, Param, Res, NotFoundException, BadRequestException } from '@nestjs/common';
 import { SchedulerService } from '../scheduler/scheduler.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ObjectAccessService } from '../storage/object-access.service';
+import { StorageService } from '../storage/storage.service';
 import { Roles } from '../auth/roles.decorator';
 import { SystemRole } from '@hwms/shared';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Controller('reports')
 export class ReportController {
   constructor(
     private readonly schedulerService: SchedulerService,
     private readonly prisma: PrismaService,
-    private readonly objectAccess: ObjectAccessService,
+    private readonly storage: StorageService,
   ) {}
 
   @Post('attendance/export')
@@ -35,10 +33,10 @@ export class ReportController {
   // HR/SUPER_ADMIN, and the fileKey must belong to a report notification in the
   // requester's tenant — prevents guessing another tenant's export by jobId.
   //
-  // Phase 8.1: when object storage is available, 302-redirect to a presigned 24h
-  // URL (§7) so bytes stream from MinIO, not the API. The endpoint is preserved
-  // (same path/contract) so existing clients keep working; the local FS copy is
-  // a streaming fallback when object storage is not configured.
+  // Stream the report bytes through the authenticated API (same-origin) rather
+  // than 302-redirecting to a presigned MinIO URL, which points at the internal
+  // `minio:9000` host the browser cannot reach. StorageService abstracts MinIO
+  // vs the local-FS fallback, so this works in both modes.
   @Get('download/:key')
   @Roles(SystemRole.SUPER_ADMIN, SystemRole.HR)
   async downloadReport(@Param('key') key: string, @Res() res: any) {
@@ -57,27 +55,17 @@ export class ReportController {
       throw new NotFoundException('Laporan tidak ditemukan atau bukan milik tenant Anda');
     }
 
-    // Preferred path: presigned 24h URL from object storage.
-    const signedUrl = await this.objectAccess.getSignedUrl('reports', key, ObjectAccessService.TTL_REPORT);
-    if (signedUrl) {
-      return res.redirect(302, signedUrl);
-    }
-
-    // Fallback: stream the local FS copy (object storage not configured).
-    const filePath = path.join(__dirname, '../../../../uploads/reports', key);
-    if (!fs.existsSync(filePath)) {
+    const buffer = await this.storage.getFile('reports', key);
+    if (!buffer) {
       throw new NotFoundException('Laporan tidak ditemukan atau sudah kedaluwarsa');
     }
 
-    const stats = fs.statSync(filePath);
-    const ageMs = Date.now() - stats.mtime.getTime();
-    if (ageMs > 24 * 60 * 60 * 1000) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (err) {}
-      throw new BadRequestException('URL download sudah kedaluwarsa (lebih dari 24 jam)');
-    }
-
-    res.download(filePath);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${key}"`,
+      'Content-Length': String(buffer.length),
+      'Cache-Control': 'private, no-store',
+    });
+    res.send(buffer);
   }
 }

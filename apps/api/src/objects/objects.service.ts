@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { AttendanceService } from '../attendance/attendance.service';
 import { ObjectAccessService } from '../storage/object-access.service';
+import { StorageService } from '../storage/storage.service';
 
 /**
  * Object-access orchestration (§7, §9). Turns an authorization decision into a
@@ -19,10 +20,40 @@ export class ObjectsService {
     private readonly prisma: PrismaService,
     private readonly attendance: AttendanceService,
     private readonly objectAccess: ObjectAccessService,
+    private readonly storage: StorageService,
   ) {}
 
   private expiryIso(ttlSeconds: number): string {
     return new Date(Date.now() + ttlSeconds * 1000).toISOString();
+  }
+
+  private contentTypeFor(key: string): string {
+    const ext = key.split('.').pop()?.toLowerCase();
+    if (ext === 'png') return 'image/png';
+    if (ext === 'webp') return 'image/webp';
+    return 'image/jpeg';
+  }
+
+  /**
+   * Stream selfie bytes through the authenticated API instead of a presigned
+   * MinIO URL. Keeps MinIO fully internal (DEPLOY.md: object storage is not
+   * published) and same-origin, so the browser can render it. Authorization,
+   * reason-gating and audit are unchanged (delegated to AttendanceService).
+   */
+  async getSelfieBytes(
+    viewer: { id: string; system_roles?: string[]; tenant_id?: string },
+    attendanceId: string,
+    reason?: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    const { selfieKey } = await this.attendance.authorizeSelfieViewById(viewer, attendanceId, reason);
+    if (!selfieKey) {
+      throw new NotFoundException('Selfie tidak tersedia (mungkin telah dihapus sesuai retensi 90 hari)');
+    }
+    const buffer = await this.storage.getFile('selfies', selfieKey);
+    if (!buffer) {
+      throw new NotFoundException('Selfie tidak ditemukan di penyimpanan');
+    }
+    return { buffer, contentType: this.contentTypeFor(selfieKey) };
   }
 
   async getSelfieUrl(
@@ -44,12 +75,14 @@ export class ObjectsService {
     return { url, expiresAt: this.expiryIso(ttl) };
   }
 
-  async getEvidenceUrl(
+  // Shared lookup + audit for evidence access. Tenant-scoped by the Prisma
+  // extension; the key must actually belong to the task (prevents accessing
+  // arbitrary object keys through this route).
+  private async resolveEvidence(
     viewer: { id: string; tenant_id?: string },
     taskId: string,
     key: string,
-  ): Promise<{ url: string; expiresAt: string | null }> {
-    // Tenant-scoped by the Prisma extension: a task from another tenant is 404.
+  ): Promise<{ kind: string; url_or_key: string }> {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deleted_at: null },
       select: { id: true },
@@ -58,8 +91,6 @@ export class ObjectsService {
       throw new NotFoundException('Task tidak ditemukan');
     }
 
-    // The key must actually belong to this task — prevents presigning arbitrary
-    // object keys through the evidence route.
     const evidence = await this.prisma.taskEvidence.findFirst({
       where: { task_id: taskId, url_or_key: key },
       select: { id: true, kind: true, url_or_key: true },
@@ -80,6 +111,16 @@ export class ObjectsService {
       },
     });
 
+    return { kind: evidence.kind, url_or_key: evidence.url_or_key };
+  }
+
+  async getEvidenceUrl(
+    viewer: { id: string; tenant_id?: string },
+    taskId: string,
+    key: string,
+  ): Promise<{ url: string; expiresAt: string | null }> {
+    const evidence = await this.resolveEvidence(viewer, taskId, key);
+
     // LINK evidence is an external URL — return it directly, nothing to presign.
     if (evidence.kind === 'LINK') {
       return { url: evidence.url_or_key, expiresAt: null };
@@ -91,5 +132,34 @@ export class ObjectsService {
       throw new ServiceUnavailableException('Penyimpanan objek tidak tersedia untuk menerbitkan URL');
     }
     return { url, expiresAt: this.expiryIso(ttl) };
+  }
+
+  /**
+   * Evidence for direct consumption: LINK → the external URL; FILE → the bytes
+   * streamed through the API (same-origin), keeping MinIO internal like selfies.
+   */
+  async getEvidenceResource(
+    viewer: { id: string; tenant_id?: string },
+    taskId: string,
+    key: string,
+  ): Promise<{ kind: 'LINK'; url: string } | { kind: 'FILE'; buffer: Buffer; contentType: string }> {
+    const evidence = await this.resolveEvidence(viewer, taskId, key);
+    if (evidence.kind === 'LINK') {
+      return { kind: 'LINK', url: evidence.url_or_key };
+    }
+    const buffer = await this.storage.getFile('evidences', key);
+    if (!buffer) {
+      throw new NotFoundException('Berkas bukti tidak ditemukan di penyimpanan');
+    }
+    return { kind: 'FILE', buffer, contentType: this.evidenceContentType(key) };
+  }
+
+  private evidenceContentType(key: string): string {
+    const ext = key.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return 'application/pdf';
+    if (ext === 'png') return 'image/png';
+    if (ext === 'webp') return 'image/webp';
+    if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+    return 'application/octet-stream';
   }
 }

@@ -57,7 +57,7 @@ const vitest_1 = require("vitest");
         const storage = new storage_service_1.StorageService();
         const objectAccess = new object_access_service_1.ObjectAccessService(storage);
         const attendance = new attendance_service_1.AttendanceService(prisma, new redis_service_1.RedisService());
-        objects = new objects_service_1.ObjectsService(prisma, attendance, objectAccess);
+        objects = new objects_service_1.ObjectsService(prisma, attendance, objectAccess, storage);
         await cleanup();
         const tenantA = await prisma.tenant.create({ data: { name: 'Obj A', slug: slugs[0], is_active: true } });
         tenantAId = tenantA.id;

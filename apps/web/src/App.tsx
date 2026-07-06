@@ -76,8 +76,10 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) { setError(true); return; }
-      const data = await res.json();
-      setUrl(data.url);
+      // The endpoint now streams the image bytes directly (authenticated,
+      // same-origin). Turn the blob into an object URL for the <img>.
+      const blob = await res.blob();
+      setUrl(prev => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(blob); });
     } catch {
       setError(true);
     } finally {
@@ -87,7 +89,7 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
 
   useEffect(() => {
     if (isOwn && attendanceId && hasSelfie) load();
-    return () => setUrl(null);
+    return () => setUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attendanceId, isOwn, hasSelfie]);
 

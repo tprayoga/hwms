@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Query, Req, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, BadRequestException } from '@nestjs/common';
+import { Response } from 'express';
 import { ObjectsService } from './objects.service';
 import { Roles } from '../auth/roles.decorator';
 import { SystemRole } from '@hwms/shared';
@@ -20,8 +21,18 @@ export class ObjectsController {
     @Param('attendanceId') attendanceId: string,
     @Query('reason') reason: string | undefined,
     @Req() req: any,
+    @Res() res: Response,
   ) {
-    return this.objectsService.getSelfieUrl(req.user, attendanceId, reason);
+    // Stream the image bytes (authenticated, same-origin) rather than a presigned
+    // MinIO URL, which would point at the internal `minio:9000` host the browser
+    // cannot reach. Authorization + audit happen inside the service.
+    const { buffer, contentType } = await this.objectsService.getSelfieBytes(req.user, attendanceId, reason);
+    res.set({
+      'Content-Type': contentType,
+      'Cache-Control': 'private, max-age=300',
+      'Content-Length': String(buffer.length),
+    });
+    res.send(buffer);
   }
 
   // Evidence is not personal data: role-scoped presigned URL, logged but no
@@ -39,10 +50,23 @@ export class ObjectsController {
     @Param('taskId') taskId: string,
     @Param('key') key: string,
     @Req() req: any,
+    @Res() res: Response,
   ) {
     if (!key) {
       throw new BadRequestException('Kunci bukti tidak valid');
     }
-    return this.objectsService.getEvidenceUrl(req.user, taskId, key);
+    const r = await this.objectsService.getEvidenceResource(req.user, taskId, key);
+    // LINK evidence is an external URL → redirect the browser to it. FILE
+    // evidence streams its bytes through the API (MinIO stays internal).
+    if (r.kind === 'LINK') {
+      res.redirect(302, r.url);
+      return;
+    }
+    res.set({
+      'Content-Type': r.contentType,
+      'Cache-Control': 'private, max-age=300',
+      'Content-Length': String(r.buffer.length),
+    });
+    res.send(r.buffer);
   }
 }

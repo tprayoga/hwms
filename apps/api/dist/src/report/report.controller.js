@@ -16,19 +16,17 @@ exports.ReportController = void 0;
 const common_1 = require("@nestjs/common");
 const scheduler_service_1 = require("../scheduler/scheduler.service");
 const prisma_service_1 = require("../prisma/prisma.service");
-const object_access_service_1 = require("../storage/object-access.service");
+const storage_service_1 = require("../storage/storage.service");
 const roles_decorator_1 = require("../auth/roles.decorator");
 const shared_1 = require("@hwms/shared");
-const fs = require("fs");
-const path = require("path");
 let ReportController = class ReportController {
     schedulerService;
     prisma;
-    objectAccess;
-    constructor(schedulerService, prisma, objectAccess) {
+    storage;
+    constructor(schedulerService, prisma, storage) {
         this.schedulerService = schedulerService;
         this.prisma = prisma;
-        this.objectAccess = objectAccess;
+        this.storage = storage;
     }
     async exportAttendance(req, body) {
         const { dateFrom, dateTo } = body;
@@ -54,24 +52,17 @@ let ReportController = class ReportController {
         if (!owningNotification) {
             throw new common_1.NotFoundException('Laporan tidak ditemukan atau bukan milik tenant Anda');
         }
-        const signedUrl = await this.objectAccess.getSignedUrl('reports', key, object_access_service_1.ObjectAccessService.TTL_REPORT);
-        if (signedUrl) {
-            return res.redirect(302, signedUrl);
-        }
-        const filePath = path.join(__dirname, '../../../../uploads/reports', key);
-        if (!fs.existsSync(filePath)) {
+        const buffer = await this.storage.getFile('reports', key);
+        if (!buffer) {
             throw new common_1.NotFoundException('Laporan tidak ditemukan atau sudah kedaluwarsa');
         }
-        const stats = fs.statSync(filePath);
-        const ageMs = Date.now() - stats.mtime.getTime();
-        if (ageMs > 24 * 60 * 60 * 1000) {
-            try {
-                fs.unlinkSync(filePath);
-            }
-            catch (err) { }
-            throw new common_1.BadRequestException('URL download sudah kedaluwarsa (lebih dari 24 jam)');
-        }
-        res.download(filePath);
+        res.set({
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition': `attachment; filename="${key}"`,
+            'Content-Length': String(buffer.length),
+            'Cache-Control': 'private, no-store',
+        });
+        res.send(buffer);
     }
 };
 exports.ReportController = ReportController;
@@ -97,6 +88,6 @@ exports.ReportController = ReportController = __decorate([
     (0, common_1.Controller)('reports'),
     __metadata("design:paramtypes", [scheduler_service_1.SchedulerService,
         prisma_service_1.PrismaService,
-        object_access_service_1.ObjectAccessService])
+        storage_service_1.StorageService])
 ], ReportController);
 //# sourceMappingURL=report.controller.js.map
