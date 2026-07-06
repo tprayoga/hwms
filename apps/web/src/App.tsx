@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import * as XLSX from 'xlsx';
-import { 
-  LayoutDashboard, 
-  Users, 
-  CheckSquare, 
-  FileCheck2, 
-  BarChart3, 
-  Settings, 
-  Calendar, 
-  User as UserIcon, 
-  LogOut, 
-  Bell, 
-  MapPin, 
-  AlertCircle, 
-  Loader2, 
-  Search, 
-  Clock, 
-  PlusCircle, 
-  CheckCircle2, 
-  ShieldAlert, 
+import React, { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
+import {
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  FileCheck2,
+  BarChart3,
+  Settings,
+  Calendar,
+  User as UserIcon,
+  LogOut,
+  Bell,
+  MapPin,
+  AlertCircle,
+  Loader2,
+  Search,
+  Clock,
+  PlusCircle,
+  CheckCircle2,
+  ShieldAlert,
   Download,
   Upload,
   Edit2,
@@ -32,36 +32,29 @@ import {
   Camera,
   Wifi,
   WifiOff,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle,
+} from "lucide-react";
 
 // API Base URL. In production the nginx image is built with VITE_API_URL=/api/v1
 // and proxies /api to the API service (same-origin, no CORS). Dev falls back to
 // the local API server.
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api/v1';
+const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:3000/api/v1";
 
 const TaskStatus = {
-  NOT_STARTED: 'NOT_STARTED',
-  IN_PROGRESS: 'IN_PROGRESS',
-  DONE: 'DONE',
-  BLOCKED: 'BLOCKED',
-  DEFERRED: 'DEFERRED',
-  CANCELLED: 'CANCELLED'
+  NOT_STARTED: "NOT_STARTED",
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "DONE",
+  BLOCKED: "BLOCKED",
+  DEFERRED: "DEFERRED",
+  CANCELLED: "CANCELLED",
 };
 
 // Brand logo — indoteksaft horizontal lockup (blue mark + wordmark), served
 // from /public with a transparent background. Height-driven, width auto
 // (native ~4.42:1). On the blue brand panel it sits inside a white chip so the
 // dark wordmark stays legible.
-function BrandLogo({ className = 'h-8' }: { className?: string }) {
-  return (
-    <img
-      src="/logo-indoteksaft.png"
-      alt="indoteksaft"
-      className={`${className} w-auto select-none`}
-      draggable={false}
-    />
-  );
+function BrandLogo({ className = "h-8" }: { className?: string }) {
+  return <img src="/logo-indoteksaft.png" alt="indoteksaft" className={`${className} w-auto select-none`} draggable={false} />;
 }
 
 // Audited selfie thumbnail (§7, §9 — UU PDP). Uses the presigned-URL endpoint
@@ -70,13 +63,7 @@ function BrandLogo({ className = 'h-8' }: { className?: string }) {
 // employee's selfie requires a reason (min 10 chars) that the API records to
 // audit_logs, so those load only after an explicit request.
 const SELFIE_REASON_MIN = 10;
-function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
-  attendanceId: string | null;
-  hasSelfie: boolean;
-  isOwn: boolean;
-  token: string | null;
-  alt: string;
-}) {
+function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: { attendanceId: string | null; hasSelfie: boolean; isOwn: boolean; token: string | null; alt: string }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -86,15 +73,21 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
     setLoading(true);
     setError(false);
     try {
-      const q = reason ? `?reason=${encodeURIComponent(reason)}` : '';
+      const q = reason ? `?reason=${encodeURIComponent(reason)}` : "";
       const res = await fetch(`${API_URL}/objects/selfie/${attendanceId}${q}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) { setError(true); return; }
+      if (!res.ok) {
+        setError(true);
+        return;
+      }
       // The endpoint now streams the image bytes directly (authenticated,
       // same-origin). Turn the blob into an object URL for the <img>.
       const blob = await res.blob();
-      setUrl(prev => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(blob); });
+      setUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(blob);
+      });
     } catch {
       setError(true);
     } finally {
@@ -104,14 +97,16 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
 
   useEffect(() => {
     if (isOwn && attendanceId && hasSelfie) load();
-    return () => setUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+    return () =>
+      setUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attendanceId, isOwn, hasSelfie]);
 
   const requestOthers = () => {
-    const reason = window.prompt(
-      `Alasan melihat selfie karyawan ini (wajib, min ${SELFIE_REASON_MIN} karakter, tercatat di audit):`,
-    );
+    const reason = window.prompt(`Alasan melihat selfie karyawan ini (wajib, min ${SELFIE_REASON_MIN} karakter, tercatat di audit):`);
     if (reason === null) return;
     if (reason.trim().length >= SELFIE_REASON_MIN) {
       load(reason.trim());
@@ -120,7 +115,7 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
     }
   };
 
-  const boxClass = 'h-16 w-16 object-cover rounded-lg border border-slate-200 shrink-0';
+  const boxClass = "h-16 w-16 object-cover rounded-lg border border-slate-200 shrink-0";
 
   if (!attendanceId || !hasSelfie) {
     return (
@@ -143,17 +138,12 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
     return (
       <button type="button" onClick={() => load()} className={`${boxClass} bg-white flex flex-col items-center justify-center gap-0.5 hover:bg-slate-100`}>
         <Camera className="h-4 w-4 text-slate-500" />
-        <span className="text-[7px] text-slate-500">{error ? 'Coba lagi' : 'Muat'}</span>
+        <span className="text-[7px] text-slate-500">{error ? "Coba lagi" : "Muat"}</span>
       </button>
     );
   }
   return (
-    <button
-      type="button"
-      onClick={requestOthers}
-      title="Melihat selfie karyawan lain tercatat di audit (UU PDP)"
-      className={`${boxClass} bg-white flex flex-col items-center justify-center gap-0.5 hover:bg-slate-100`}
-    >
+    <button type="button" onClick={requestOthers} title="Melihat selfie karyawan lain tercatat di audit (UU PDP)" className={`${boxClass} bg-white flex flex-col items-center justify-center gap-0.5 hover:bg-slate-100`}>
       <ShieldAlert className="h-4 w-4 text-amber-600" />
       <span className="text-[7px] text-slate-500 leading-tight text-center px-0.5">Lihat selfie</span>
     </button>
@@ -178,11 +168,11 @@ interface UserProfile {
 class OfflineDB {
   static open(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('hwms_db', 1);
+      const request = indexedDB.open("hwms_db", 1);
       request.onupgradeneeded = () => {
         const db = request.result;
-        if (!db.objectStoreNames.contains('queue')) {
-          db.createObjectStore('queue', { keyPath: 'idempotencyKey' });
+        if (!db.objectStoreNames.contains("queue")) {
+          db.createObjectStore("queue", { keyPath: "idempotencyKey" });
         }
       };
       request.onsuccess = () => resolve(request.result);
@@ -193,8 +183,8 @@ class OfflineDB {
   static async add(item: any): Promise<void> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction('queue', 'readwrite');
-      const store = tx.objectStore('queue');
+      const tx = db.transaction("queue", "readwrite");
+      const store = tx.objectStore("queue");
       store.put(item);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
@@ -204,8 +194,8 @@ class OfflineDB {
   static async getAll(): Promise<any[]> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction('queue', 'readonly');
-      const store = tx.objectStore('queue');
+      const tx = db.transaction("queue", "readonly");
+      const store = tx.objectStore("queue");
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -215,8 +205,8 @@ class OfflineDB {
   static async delete(key: string): Promise<void> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction('queue', 'readwrite');
-      const store = tx.objectStore('queue');
+      const tx = db.transaction("queue", "readwrite");
+      const store = tx.objectStore("queue");
       store.delete(key);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
@@ -225,18 +215,18 @@ class OfflineDB {
 }
 
 export default function App() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('access_token'));
+  const [token, setToken] = useState<string | null>(localStorage.getItem("access_token"));
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loginLoading, setLoginLoading] = useState<boolean>(false);
-  
+
   // Login Form State
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
+
   // Routing / View State (Mobile defaults to hari_ini, Desktop to dashboard)
-  const [activeTab, setActiveTab] = useState<string>(window.innerWidth < 768 ? 'hari_ini' : 'hari_ini');
+  const [activeTab, setActiveTab] = useState<string>(window.innerWidth < 768 ? "hari_ini" : "hari_ini");
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
 
   // Connection status & offline queue
@@ -245,7 +235,7 @@ export default function App() {
   const [syncingOffline, setSyncingOffline] = useState<boolean>(false);
 
   // Admin Sub-tabs State
-  const [adminSubTab, setAdminSubTab] = useState<string>('users');
+  const [adminSubTab, setAdminSubTab] = useState<string>("users");
 
   // Master Data Lists State
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -254,7 +244,7 @@ export default function App() {
   const [departmentsList, setDepartmentsList] = useState<any[]>([]);
   const [teamsList, setTeamsList] = useState<any[]>([]);
   const [rolesList, setRolesList] = useState<any[]>([]);
-  
+
   // Projects, Sprints, Tasks States
   const [projectsList, setProjectsList] = useState<any[]>([]);
   const [sprintsList, setSprintsList] = useState<any[]>([]);
@@ -274,55 +264,55 @@ export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Checkin Form State
-  const [checkinWorkStatus, setCheckinWorkStatus] = useState<string>('WFO');
-  const [checkinClientProjectId, setCheckinClientProjectId] = useState<string>('');
+  const [checkinWorkStatus, setCheckinWorkStatus] = useState<string>("WFO");
+  const [checkinClientProjectId, setCheckinClientProjectId] = useState<string>("");
   const [checkinSelectedTaskIds, setCheckinSelectedTaskIds] = useState<Record<string, boolean>>({});
   const [checkinTaskNotes, setCheckinTaskNotes] = useState<Record<string, string>>({});
-  const [checkinDailyNote, setCheckinDailyNote] = useState<string>('');
-  
+  const [checkinDailyNote, setCheckinDailyNote] = useState<string>("");
+
   // Blocker Form State
   const [hasBlocker, setHasBlocker] = useState<boolean>(false);
-  const [blockerTaskId, setBlockerTaskId] = useState<string>('');
-  const [blockerDescription, setBlockerDescription] = useState<string>('');
+  const [blockerTaskId, setBlockerTaskId] = useState<string>("");
+  const [blockerDescription, setBlockerDescription] = useState<string>("");
   const [blockerMentions, setBlockerMentions] = useState<string[]>([]);
 
   // Checkout Form State
   const [checkoutTaskPercents, setCheckoutTaskPercents] = useState<Record<string, number>>({});
   const [checkoutTaskStatuses, setCheckoutTaskStatuses] = useState<Record<string, string>>({});
   const [checkoutTaskEvidences, setCheckoutTaskEvidences] = useState<Record<string, string>>({});
-  const [checkoutDailyNote, setCheckoutDailyNote] = useState<string>('');
+  const [checkoutDailyNote, setCheckoutDailyNote] = useState<string>("");
 
   // My Tasks Filter State
-  const [myTasksFilterSprint, setMyTasksFilterSprint] = useState<string>('');
-  const [myTasksFilterStatus, setMyTasksFilterStatus] = useState<string>('');
-  const [myTasksFilterPriority, setMyTasksFilterPriority] = useState<string>('');
+  const [myTasksFilterSprint, setMyTasksFilterSprint] = useState<string>("");
+  const [myTasksFilterStatus, setMyTasksFilterStatus] = useState<string>("");
+  const [myTasksFilterPriority, setMyTasksFilterPriority] = useState<string>("");
 
   // Feed States
   const [feedData, setFeedData] = useState<any>(null);
-  const [feedDate, setFeedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [feedTeamFilter, setFeedTeamFilter] = useState<string>('');
+  const [feedDate, setFeedDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [feedTeamFilter, setFeedTeamFilter] = useState<string>("");
   const [fetchingFeed, setFetchingFeed] = useState<boolean>(false);
 
   // Leave States
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [approvalsInbox, setApprovalsInbox] = useState<any[]>([]);
-  const [leaveSubTab, setLeaveSubTab] = useState<'my' | 'approvals'>('my');
+  const [leaveSubTab, setLeaveSubTab] = useState<"my" | "approvals">("my");
   const [leaveFormOpen, setLeaveFormOpen] = useState<boolean>(false);
   const [submittingLeave, setSubmittingLeave] = useState<boolean>(false);
-  const [leaveForm, setLeaveForm] = useState({ type: 'CUTI', dateFromStr: '', dateToStr: '', reason: '' });
+  const [leaveForm, setLeaveForm] = useState({ type: "CUTI", dateFromStr: "", dateToStr: "", reason: "" });
   const [leaveAttachment, setLeaveAttachment] = useState<File | null>(null);
   const leaveAttachmentInputRef = useRef<HTMLInputElement>(null);
 
   // Dashboard & PWA Onboarding States
   const [dashboardData, setDashboardData] = useState<any>(null);
-  const [dashboardSubTab, setDashboardSubTab] = useState<'team' | 'program'>('team');
-  const [dashboardDateFrom, setDashboardDateFrom] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [dashboardDateTo, setDashboardDateTo] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [dashboardTeamFilter, setDashboardTeamFilter] = useState<string>('');
+  const [dashboardSubTab, setDashboardSubTab] = useState<"team" | "program">("team");
+  const [dashboardDateFrom, setDashboardDateFrom] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [dashboardDateTo, setDashboardDateTo] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [dashboardTeamFilter, setDashboardTeamFilter] = useState<string>("");
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(false);
   const [exportModalOpen, setExportModalOpen] = useState<boolean>(false);
-  const [exportDateFrom, setExportDateFrom] = useState<string>('');
-  const [exportDateTo, setExportDateTo] = useState<string>('');
+  const [exportDateFrom, setExportDateFrom] = useState<string>("");
+  const [exportDateTo, setExportDateTo] = useState<string>("");
   const [submittingExport, setSubmittingExport] = useState<boolean>(false);
   const [fetchingDashboard, setFetchingDashboard] = useState<boolean>(false);
   const [notificationsList, setNotificationsList] = useState<any[]>([]);
@@ -335,7 +325,7 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [holidayModalOpen, setHolidayModalOpen] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState<any | null>(null);
-  
+
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [sprintModalOpen, setSprintModalOpen] = useState(false);
@@ -345,16 +335,16 @@ export default function App() {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   // Profile & password (self-service)
-  const [profileForm, setProfileForm] = useState({ fullName: '', timezone: 'Asia/Jakarta' });
+  const [profileForm, setProfileForm] = useState({ fullName: "", timezone: "Asia/Jakarta" });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordForm, setPasswordForm] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const [importDrawerOpen, setImportDrawerOpen] = useState(false);
-  const [importType, setImportType] = useState<'users' | 'tasks'>('users');
-  const [importSelectedProjectId, setImportSelectedProjectId] = useState<string>('');
+  const [importType, setImportType] = useState<"users" | "tasks">("users");
+  const [importSelectedProjectId, setImportSelectedProjectId] = useState<string>("");
   const [importPreview, setImportPreview] = useState<any | null>(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importCommitMessage, setImportCommitMessage] = useState<string | null>(null);
@@ -362,40 +352,65 @@ export default function App() {
 
   // Forms Input States
   const [userForm, setUserForm] = useState({
-    email: '', fullName: '', nik: '', password: '', departmentId: '', functionalRoleId: '',
-    managerId: '', systemRoles: ['EMPLOYEE'], timezone: 'Asia/Jakarta', checkinMode: 'TWICE', leaveBalance: 12
+    email: "",
+    fullName: "",
+    nik: "",
+    password: "",
+    departmentId: "",
+    functionalRoleId: "",
+    managerId: "",
+    systemRoles: ["EMPLOYEE"],
+    timezone: "Asia/Jakarta",
+    checkinMode: "TWICE",
+    leaveBalance: 12,
   });
 
-  const [locationForm, setLocationForm] = useState({ name: '', type: 'OFFICE', lat: '', lng: '', radiusM: '200' });
-  const [holidayForm, setHolidayForm] = useState({ date: '', name: '', isCutiBersama: false });
-  const [projectForm, setProjectForm] = useState({ name: '', codePrefix: '', status: 'ACTIVE' });
-  const [sprintForm, setSprintForm] = useState({ projectId: '', number: '', startDate: '', endDate: '', goal: '' });
+  const [locationForm, setLocationForm] = useState({ name: "", type: "OFFICE", lat: "", lng: "", radiusM: "200" });
+  const [holidayForm, setHolidayForm] = useState({ date: "", name: "", isCutiBersama: false });
+  const [projectForm, setProjectForm] = useState({ name: "", codePrefix: "", status: "ACTIVE" });
+  const [sprintForm, setSprintForm] = useState({ projectId: "", number: "", startDate: "", endDate: "", goal: "" });
   const [taskForm, setTaskForm] = useState({
-    projectId: '', sprintId: '', functionalRoleId: '', workstream: 'General', title: '',
-    deliverable: '', priority: 'MEDIUM', plannedStart: '', plannedEnd: '', status: 'NOT_STARTED',
-    percentComplete: 0, weight: 1.0, riskLevel: 'LOW', notes: ''
+    projectId: "",
+    sprintId: "",
+    functionalRoleId: "",
+    workstream: "General",
+    title: "",
+    deliverable: "",
+    priority: "MEDIUM",
+    plannedStart: "",
+    plannedEnd: "",
+    status: "NOT_STARTED",
+    percentComplete: 0,
+    weight: 1.0,
+    riskLevel: "LOW",
+    notes: "",
   });
 
   // Connection events & Offline DB scan
   useEffect(() => {
-    const handleOnline = () => { setIsOnline(true); syncOfflineQueue(); };
-    const handleOffline = () => { setIsOnline(false); };
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncOfflineQueue();
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Initial check and sync
     checkOfflineQueueCount();
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
   // E2E Testing Hook to receive mocked selfie previews
   useEffect(() => {
     const checkMockSelfie = setInterval(() => {
-      if (typeof window !== 'undefined' && (window as any).selfiePreview) {
-        console.log('E2E Hook: Mock selfie detected in window.selfiePreview:', (window as any).selfiePreview.substring(0, 100));
+      if (typeof window !== "undefined" && (window as any).selfiePreview) {
+        console.log("E2E Hook: Mock selfie detected in window.selfiePreview:", (window as any).selfiePreview.substring(0, 100));
         setSelfiePreview((window as any).selfiePreview);
         delete (window as any).selfiePreview;
       }
@@ -421,35 +436,35 @@ export default function App() {
     for (const item of queue) {
       try {
         const formData = new FormData();
-        formData.append('workStatus', item.payload.workStatus || '');
-        formData.append('clientProjectId', item.payload.clientProjectId || '');
-        formData.append('lat', item.payload.lat || '');
-        formData.append('lng', item.payload.lng || '');
-        formData.append('accuracy', item.payload.accuracy || '');
-        formData.append('items', item.payload.items || '');
-        formData.append('blocker', item.payload.blocker || '');
-        formData.append('dailyNote', item.payload.dailyNote || '');
-        formData.append('deviceTimestamp', item.payload.deviceTimestamp || '');
-        formData.append('isOfflineSync', 'true');
-        formData.append('updates', item.payload.updates || '');
-        
+        formData.append("workStatus", item.payload.workStatus || "");
+        formData.append("clientProjectId", item.payload.clientProjectId || "");
+        formData.append("lat", item.payload.lat || "");
+        formData.append("lng", item.payload.lng || "");
+        formData.append("accuracy", item.payload.accuracy || "");
+        formData.append("items", item.payload.items || "");
+        formData.append("blocker", item.payload.blocker || "");
+        formData.append("dailyNote", item.payload.dailyNote || "");
+        formData.append("deviceTimestamp", item.payload.deviceTimestamp || "");
+        formData.append("isOfflineSync", "true");
+        formData.append("updates", item.payload.updates || "");
+
         // Convert base64 dataURI back to file Blob
         const resBlob = await fetch(item.payload.selfieBase64);
         const blob = await resBlob.blob();
-        formData.append('selfie', blob, 'selfie.jpg');
+        formData.append("selfie", blob, "selfie.jpg");
 
         let url = `${API_URL}/attendance/checkins`;
-        if (item.type === 'OUT') {
+        if (item.type === "OUT") {
           url = `${API_URL}/attendance/checkins/${item.checkinId}/checkout`;
         }
 
         const res = await fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Idempotency-Key': item.idempotencyKey
+            Authorization: `Bearer ${token}`,
+            "Idempotency-Key": item.idempotencyKey,
           },
-          body: formData
+          body: formData,
         });
 
         if (res.ok || res.status === 400) {
@@ -457,7 +472,7 @@ export default function App() {
           await OfflineDB.delete(item.idempotencyKey);
         }
       } catch (err) {
-        console.error('Failed to sync offline item', err);
+        console.error("Failed to sync offline item", err);
         break; // Stop sync on network issues
       }
     }
@@ -471,14 +486,14 @@ export default function App() {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile && ['dashboard', 'tim', 'approval', 'laporan', 'admin'].includes(activeTab)) {
-        setActiveTab('hari_ini');
-      } else if (!mobile && ['hari_ini', 'feed', 'profil'].includes(activeTab)) {
-        setActiveTab('hari_ini');
+      if (mobile && ["dashboard", "tim", "approval", "laporan", "admin"].includes(activeTab)) {
+        setActiveTab("hari_ini");
+      } else if (!mobile && ["hari_ini", "feed", "profil"].includes(activeTab)) {
+        setActiveTab("hari_ini");
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [activeTab]);
 
   // Load profile and today status
@@ -492,20 +507,20 @@ export default function App() {
   // Fetch data when switching views
   useEffect(() => {
     if (token) {
-      if (activeTab === 'admin') {
+      if (activeTab === "admin") {
         fetchAdminMasterData();
-      } else if (activeTab === 'task') {
+      } else if (activeTab === "task") {
         fetchMyTasksViewData();
-      } else if (activeTab === 'hari_ini') {
+      } else if (activeTab === "hari_ini") {
         fetchTodayStatus();
         fetchAdminMasterData(); // Need usersList for blocker mention selection
-      } else if (activeTab === 'feed') {
+      } else if (activeTab === "feed") {
         fetchFeed();
         fetchAdminMasterData(); // Need projectsList & departmentsList for dropdown filters
-      } else if (activeTab === 'leave') {
+      } else if (activeTab === "leave") {
         fetchMyLeaves();
         fetchApprovalsInbox();
-      } else if (activeTab === 'dashboard') {
+      } else if (activeTab === "dashboard") {
         fetchDashboard();
         fetchAdminMasterData();
       }
@@ -513,7 +528,7 @@ export default function App() {
   }, [activeTab, adminSubTab, token]);
 
   useEffect(() => {
-    if (token && activeTab === 'dashboard') {
+    if (token && activeTab === "dashboard") {
       fetchDashboard();
     }
   }, [dashboardSubTab, dashboardDateFrom, dashboardDateTo, dashboardTeamFilter, token, activeTab]);
@@ -530,8 +545,8 @@ export default function App() {
   }, [token, user]);
 
   useEffect(() => {
-    if (token && activeTab === 'leave') {
-      if (leaveSubTab === 'my') {
+    if (token && activeTab === "leave") {
+      if (leaveSubTab === "my") {
         fetchMyLeaves();
       } else {
         fetchApprovalsInbox();
@@ -543,7 +558,7 @@ export default function App() {
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/leaves/my`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setLeaveRequests(await res.json());
@@ -557,7 +572,7 @@ export default function App() {
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/leaves/approvals/inbox`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setApprovalsInbox(await res.json());
@@ -574,74 +589,74 @@ export default function App() {
     setSubmittingLeave(true);
     try {
       const formData = new FormData();
-      formData.append('type', leaveForm.type);
-      formData.append('dateFromStr', leaveForm.dateFromStr);
-      formData.append('dateToStr', leaveForm.dateToStr);
-      formData.append('reason', leaveForm.reason);
+      formData.append("type", leaveForm.type);
+      formData.append("dateFromStr", leaveForm.dateFromStr);
+      formData.append("dateToStr", leaveForm.dateToStr);
+      formData.append("reason", leaveForm.reason);
       if (leaveAttachment) {
-        formData.append('file', leaveAttachment);
+        formData.append("file", leaveAttachment);
       }
 
       const res = await fetch(`${API_URL}/leaves`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
 
       if (res.ok) {
-        alert('Pengajuan cuti/izin/sakit berhasil dikirim!');
+        alert("Pengajuan cuti/izin/sakit berhasil dikirim!");
         setLeaveFormOpen(false);
-        setLeaveForm({ type: 'CUTI', dateFromStr: '', dateToStr: '', reason: '' });
+        setLeaveForm({ type: "CUTI", dateFromStr: "", dateToStr: "", reason: "" });
         setLeaveAttachment(null);
         fetchMyLeaves();
         fetchProfile(); // reload profile to update leave balance in header
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal mengirim pengajuan cuti');
+        alert(err.message || "Gagal mengirim pengajuan cuti");
       }
     } catch (e) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     } finally {
       setSubmittingLeave(false);
     }
   };
 
-  const handleDecideLeave = async (requestId: string, status: 'APPROVED' | 'REJECTED') => {
+  const handleDecideLeave = async (requestId: string, status: "APPROVED" | "REJECTED") => {
     if (!token) return;
 
-    let decisionNote = '';
-    if (status === 'REJECTED') {
-      const note = prompt('Alasan Penolakan (Wajib):');
+    let decisionNote = "";
+    if (status === "REJECTED") {
+      const note = prompt("Alasan Penolakan (Wajib):");
       if (note === null) return; // cancel prompt
-      if (note.trim() === '') {
-        alert('Alasan penolakan wajib diisi!');
+      if (note.trim() === "") {
+        alert("Alasan penolakan wajib diisi!");
         return;
       }
       decisionNote = note;
     } else {
-      if (!confirm('Apakah Anda yakin ingin menyetujui pengajuan ini?')) return;
+      if (!confirm("Apakah Anda yakin ingin menyetujui pengajuan ini?")) return;
     }
 
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/leaves/approvals/${requestId}/decide`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status, decisionNote })
+        body: JSON.stringify({ status, decisionNote }),
       });
 
       if (res.ok) {
-        alert(status === 'APPROVED' ? 'Pengajuan disetujui!' : 'Pengajuan ditolak.');
+        alert(status === "APPROVED" ? "Pengajuan disetujui!" : "Pengajuan ditolak.");
         fetchApprovalsInbox();
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal menyimpan keputusan');
+        alert(err.message || "Gagal menyimpan keputusan");
       }
     } catch (e) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     } finally {
       setLoading(false);
     }
@@ -649,25 +664,25 @@ export default function App() {
 
   const handleCancelLeave = async (requestId: string) => {
     if (!token) return;
-    if (!confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')) return;
+    if (!confirm("Apakah Anda yakin ingin membatalkan pengajuan ini?")) return;
 
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/leaves/${requestId}/cancel`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
-        alert('Pengajuan berhasil dibatalkan.');
+        alert("Pengajuan berhasil dibatalkan.");
         fetchMyLeaves();
         fetchProfile(); // reload balance
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal membatalkan pengajuan');
+        alert(err.message || "Gagal membatalkan pengajuan");
       }
     } catch (e) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     } finally {
       setLoading(false);
     }
@@ -677,10 +692,10 @@ export default function App() {
   // managers (see renderDashboardView). The fetch MUST target the same sub-tab,
   // otherwise we render the program layout against team-shaped data (which has no
   // `.metrics`) and crash. Keep this logic in sync with `currentSubTab`.
-  const effectiveDashboardSubTab = (): 'team' | 'program' => {
-    const isManager = user?.roles.includes('MANAGER') || user?.roles.includes('SUPER_ADMIN');
-    const isCTOorPM = user?.roles.includes('CTO') || user?.roles.includes('PM_ADMIN') || user?.roles.includes('SUPER_ADMIN');
-    return isCTOorPM && !isManager ? 'program' : dashboardSubTab;
+  const effectiveDashboardSubTab = (): "team" | "program" => {
+    const isManager = user?.roles.includes("MANAGER") || user?.roles.includes("SUPER_ADMIN");
+    const isCTOorPM = user?.roles.includes("CTO") || user?.roles.includes("PM_ADMIN") || user?.roles.includes("SUPER_ADMIN");
+    return isCTOorPM && !isManager ? "program" : dashboardSubTab;
   };
 
   const fetchDashboard = async () => {
@@ -690,21 +705,21 @@ export default function App() {
     setDashboardData(null);
     setFetchingDashboard(true);
     try {
-      let url = '';
-      if (effectiveDashboardSubTab() === 'team') {
+      let url = "";
+      if (effectiveDashboardSubTab() === "team") {
         url = `${API_URL}/dashboard/team?team=${dashboardTeamFilter}&dateFrom=${dashboardDateFrom}&dateTo=${dashboardDateTo}`;
       } else {
         url = `${API_URL}/dashboard/program`;
       }
 
       const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setDashboardData(await res.json());
       }
     } catch (e) {
-      console.error('Failed to fetch dashboard data:', e);
+      console.error("Failed to fetch dashboard data:", e);
     } finally {
       setFetchingDashboard(false);
     }
@@ -717,43 +732,43 @@ export default function App() {
     setSubmittingExport(true);
     try {
       const res = await fetch(`${API_URL}/reports/attendance/export`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ dateFrom: exportDateFrom, dateTo: exportDateTo })
+        body: JSON.stringify({ dateFrom: exportDateFrom, dateTo: exportDateTo }),
       });
 
       if (res.ok) {
-        alert('Proses ekspor absensi telah dijadwalkan secara asinkron di latar belakang. Anda akan menerima notifikasi di bel notifikasi ketika file siap diunduh.');
+        alert("Proses ekspor absensi telah dijadwalkan secara asinkron di latar belakang. Anda akan menerima notifikasi di bel notifikasi ketika file siap diunduh.");
         setExportModalOpen(false);
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal memulai ekspor absensi');
+        alert(err.message || "Gagal memulai ekspor absensi");
       }
     } catch (e) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     } finally {
       setSubmittingExport(false);
     }
   };
 
   const setupPushSubscription = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Web push not supported by this browser');
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.warn("Web push not supported by this browser");
       return;
     }
 
     try {
       const reg = await navigator.serviceWorker.ready;
-      
+
       const keyRes = await fetch(`${API_URL}/push/key`);
       if (!keyRes.ok) return;
       const { publicKey } = await keyRes.json();
 
-      const padding = '='.repeat((4 - publicKey.length % 4) % 4);
-      const base64 = (publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const padding = "=".repeat((4 - (publicKey.length % 4)) % 4);
+      const base64 = (publicKey + padding).replace(/\-/g, "+").replace(/_/g, "/");
       const rawData = window.atob(base64);
       const outputArray = new Uint8Array(rawData.length);
       for (let i = 0; i < rawData.length; ++i) {
@@ -762,26 +777,26 @@ export default function App() {
 
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: outputArray
+        applicationServerKey: outputArray,
       });
 
       await fetch(`${API_URL}/push/subscribe`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(subscription)
+        body: JSON.stringify(subscription),
       });
 
-      console.log('Web push subscription registered successfully.');
+      console.log("Web push subscription registered successfully.");
     } catch (e) {
-      console.error('Failed to register push subscription:', e);
+      console.error("Failed to register push subscription:", e);
     }
   };
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem(`onboarding_done_${user.id}`, 'true');
+    localStorage.setItem(`onboarding_done_${user.id}`, "true");
     setOnboardingOpen(false);
     setupPushSubscription();
   };
@@ -790,13 +805,13 @@ export default function App() {
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/push/notifications`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setNotificationsList(await res.json());
       }
     } catch (e) {
-      console.error('Failed to fetch notifications:', e);
+      console.error("Failed to fetch notifications:", e);
     }
   };
 
@@ -809,7 +824,7 @@ export default function App() {
   }, [token]);
 
   useEffect(() => {
-    if (token && activeTab === 'feed') {
+    if (token && activeTab === "feed") {
       fetchFeed();
     }
   }, [feedDate, feedTeamFilter]);
@@ -819,13 +834,13 @@ export default function App() {
     setFetchingFeed(true);
     try {
       const res = await fetch(`${API_URL}/feed?date=${feedDate}&team=${feedTeamFilter}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setFeedData(await res.json());
       }
     } catch (e) {
-      console.error('Failed to fetch feed', e);
+      console.error("Failed to fetch feed", e);
     } finally {
       setFetchingFeed(false);
     }
@@ -833,22 +848,22 @@ export default function App() {
 
   const handleResolveBlocker = async (blockerId: string) => {
     if (!token) return;
-    if (!confirm('Apakah Anda yakin ingin menyelesaikan blocker ini?')) return;
+    if (!confirm("Apakah Anda yakin ingin menyelesaikan blocker ini?")) return;
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/feed/blockers/${blockerId}/resolve`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        alert('Blocker berhasil diselesaikan!');
+        alert("Blocker berhasil diselesaikan!");
         fetchFeed();
       } else {
         const data = await res.json();
-        alert(data.message || 'Gagal menyelesaikan blocker');
+        alert(data.message || "Gagal menyelesaikan blocker");
       }
     } catch (err) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     } finally {
       setLoading(false);
     }
@@ -858,7 +873,7 @@ export default function App() {
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -867,7 +882,7 @@ export default function App() {
         handleLogout();
       }
     } catch (e) {
-      console.error('Failed to fetch profile', e);
+      console.error("Failed to fetch profile", e);
       handleLogout();
     } finally {
       setLoading(false);
@@ -879,28 +894,28 @@ export default function App() {
     setFetchingToday(true);
     try {
       const res = await fetch(`${API_URL}/attendance/me/today`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
         setTodayData(data);
-        
+
         // Populate default values
         if (data.todayCheckin && !data.checkout) {
           // Pre-populate checkout task percents & statuses
           const initialPercents: Record<string, number> = {};
           const initialStatuses: Record<string, string> = {};
           const initialEvidences: Record<string, string> = {};
-          
+
           (data.activeSprintTasks || []).forEach((t: any) => {
             initialPercents[t.id] = t.percent_complete;
             initialStatuses[t.id] = t.status;
-            initialEvidences[t.id] = '';
+            initialEvidences[t.id] = "";
           });
           (data.carryOverTasks || []).forEach((t: any) => {
             initialPercents[t.id] = t.percent_complete;
             initialStatuses[t.id] = t.status;
-            initialEvidences[t.id] = '';
+            initialEvidences[t.id] = "";
           });
 
           setCheckoutTaskPercents(initialPercents);
@@ -923,51 +938,48 @@ export default function App() {
   };
 
   const fetchAdminMasterData = async () => {
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { Authorization: `Bearer ${token}` };
     try {
-      if (adminSubTab === 'users' || activeTab === 'hari_ini') {
+      if (adminSubTab === "users" || activeTab === "hari_ini") {
         const [uRes, dRes, rRes, pRes] = await Promise.all([
           fetch(`${API_URL}/admin/users`, { headers }),
           fetch(`${API_URL}/admin/departments`, { headers }),
           fetch(`${API_URL}/admin/functional-roles`, { headers }),
-          fetch(`${API_URL}/tasks/projects`, { headers })
+          fetch(`${API_URL}/tasks/projects`, { headers }),
         ]);
         if (uRes.ok) setUsersList(await uRes.json());
         if (dRes.ok) setDepartmentsList(await dRes.json());
         if (rRes.ok) setRolesList(await rRes.json());
         if (pRes.ok) setProjectsList(await pRes.json());
-      } else if (adminSubTab === 'locations') {
+      } else if (adminSubTab === "locations") {
         const res = await fetch(`${API_URL}/admin/locations`, { headers });
         if (res.ok) setLocationsList(await res.json());
-      } else if (adminSubTab === 'holidays') {
+      } else if (adminSubTab === "holidays") {
         const res = await fetch(`${API_URL}/admin/holidays`, { headers });
         if (res.ok) setHolidaysList(await res.json());
-      } else if (adminSubTab === 'departments') {
+      } else if (adminSubTab === "departments") {
         const res = await fetch(`${API_URL}/admin/departments`, { headers });
         if (res.ok) setDepartmentsList(await res.json());
-      } else if (adminSubTab === 'teams') {
+      } else if (adminSubTab === "teams") {
         const res = await fetch(`${API_URL}/admin/teams`, { headers });
         if (res.ok) setTeamsList(await res.json());
-      } else if (adminSubTab === 'roles') {
+      } else if (adminSubTab === "roles") {
         const res = await fetch(`${API_URL}/admin/functional-roles`, { headers });
         if (res.ok) setRolesList(await res.json());
-      } else if (adminSubTab === 'projects') {
-        const [pRes, sRes] = await Promise.all([
-          fetch(`${API_URL}/tasks/projects`, { headers }),
-          fetch(`${API_URL}/tasks/sprints`, { headers })
-        ]);
+      } else if (adminSubTab === "projects") {
+        const [pRes, sRes] = await Promise.all([fetch(`${API_URL}/tasks/projects`, { headers }), fetch(`${API_URL}/tasks/sprints`, { headers })]);
         if (pRes.ok) setProjectsList(await pRes.json());
         if (sRes.ok) {
           const sprintsData = await sRes.json();
           setSprintsList(sprintsData);
           sprintsData.forEach((s: any) => fetchSprintAggregation(s.id));
         }
-      } else if (adminSubTab === 'tasks') {
+      } else if (adminSubTab === "tasks") {
         const [tRes, pRes, sRes, rRes] = await Promise.all([
           fetch(`${API_URL}/tasks`, { headers }),
           fetch(`${API_URL}/tasks/projects`, { headers }),
           fetch(`${API_URL}/tasks/sprints`, { headers }),
-          fetch(`${API_URL}/admin/functional-roles`, { headers })
+          fetch(`${API_URL}/admin/functional-roles`, { headers }),
         ]);
         if (tRes.ok) setTasksList(await tRes.json());
         if (pRes.ok) setProjectsList(await pRes.json());
@@ -975,31 +987,28 @@ export default function App() {
         if (rRes.ok) setRolesList(await rRes.json());
       }
     } catch (e) {
-      console.error('Failed to fetch master data', e);
+      console.error("Failed to fetch master data", e);
     }
   };
 
   const fetchSprintAggregation = async (sprintId: string) => {
     try {
       const res = await fetch(`${API_URL}/tasks/aggregation/sprint/${sprintId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const agg = await res.json();
-        setSprintAggregations(prev => ({ ...prev, [sprintId]: agg }));
+        setSprintAggregations((prev) => ({ ...prev, [sprintId]: agg }));
       }
     } catch (err) {
-      console.error('Failed to fetch aggregation', err);
+      console.error("Failed to fetch aggregation", err);
     }
   };
 
   const fetchMyTasksViewData = async () => {
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { Authorization: `Bearer ${token}` };
     try {
-      const [sRes, pRes] = await Promise.all([
-        fetch(`${API_URL}/tasks/sprints`, { headers }),
-        fetch(`${API_URL}/tasks/projects`, { headers })
-      ]);
+      const [sRes, pRes] = await Promise.all([fetch(`${API_URL}/tasks/sprints`, { headers }), fetch(`${API_URL}/tasks/projects`, { headers })]);
       if (sRes.ok) {
         const spr = await sRes.json();
         setSprintsList(spr);
@@ -1010,7 +1019,7 @@ export default function App() {
       if (pRes.ok) setProjectsList(await pRes.json());
       fetchFilteredTasks();
     } catch (err) {
-      console.error('Failed to fetch tasks data', err);
+      console.error("Failed to fetch tasks data", err);
     }
   };
 
@@ -1022,18 +1031,18 @@ export default function App() {
 
     try {
       const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setTasksList(await res.json());
       }
     } catch (err) {
-      console.error('Failed to fetch tasks', err);
+      console.error("Failed to fetch tasks", err);
     }
   };
 
   useEffect(() => {
-    if (token && activeTab === 'task') {
+    if (token && activeTab === "task") {
       fetchFilteredTasks();
       if (myTasksFilterSprint) {
         fetchSprintAggregation(myTasksFilterSprint);
@@ -1047,33 +1056,33 @@ export default function App() {
     setLoginLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-      
+
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('access_token', data.accessToken);
+        localStorage.setItem("access_token", data.accessToken);
         setToken(data.accessToken);
         setUser(data.user);
-        setActiveTab('hari_ini');
+        setActiveTab("hari_ini");
       } else {
-        setErrorMsg(data.message || 'Email atau password salah');
+        setErrorMsg(data.message || "Email atau password salah");
       }
     } catch (e) {
-      setErrorMsg('Gagal terhubung ke server API. Pastikan server API menyala.');
+      setErrorMsg("Gagal terhubung ke server API. Pastikan server API menyala.");
     } finally {
       setLoginLoading(false);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem("access_token");
     setToken(null);
     setUser(null);
-    setEmail('');
-    setPassword('');
+    setEmail("");
+    setPassword("");
     setErrorMsg(null);
   };
 
@@ -1085,12 +1094,12 @@ export default function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
-        window.alert('Gagal mengunduh laporan (kedaluwarsa atau tidak berwenang).');
+        window.alert("Gagal mengunduh laporan (kedaluwarsa atau tidak berwenang).");
         return;
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = fileKey;
       document.body.appendChild(a);
@@ -1098,7 +1107,7 @@ export default function App() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch {
-      window.alert('Gagal mengunduh laporan.');
+      window.alert("Gagal mengunduh laporan.");
     }
   };
 
@@ -1111,7 +1120,7 @@ export default function App() {
     setSelfieBlob(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 400, height: 300 }
+        video: { facingMode: "user", width: 400, height: 300 },
       });
       setCameraStream(stream);
       if (videoRef.current) {
@@ -1119,7 +1128,7 @@ export default function App() {
         videoRef.current.play();
       }
     } catch (err) {
-      alert('Gagal mengakses kamera. Silakan beri izin kamera.');
+      alert("Gagal mengakses kamera. Silakan beri izin kamera.");
       setCameraActive(false);
     }
   };
@@ -1140,21 +1149,25 @@ export default function App() {
 
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(video, 0, 0, width, height);
         // Compress using 0.6 quality JPEG
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
         setSelfiePreview(dataUrl);
 
-        canvas.toBlob((blob) => {
-          if (blob) setSelfieBlob(blob);
-        }, 'image/jpeg', 0.6);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) setSelfieBlob(blob);
+          },
+          "image/jpeg",
+          0.6,
+        );
       }
 
       // Stop camera stream tracks
       if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream.getTracks().forEach((track) => track.stop());
         setCameraStream(null);
       }
       setCameraActive(false);
@@ -1166,10 +1179,10 @@ export default function App() {
   // ==========================================
   const handleCheckinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleCheckinSubmit started. selfiePreview length:', selfiePreview ? selfiePreview.length : 0);
-    if (!selfiePreview || (!selfieBlob && !selfiePreview.startsWith('data:'))) {
-      console.log('Validation failed: No selfiePreview or invalid format.');
-      alert('Silakan ambil foto selfie terlebih dahulu!');
+    console.log("handleCheckinSubmit started. selfiePreview length:", selfiePreview ? selfiePreview.length : 0);
+    if (!selfiePreview || (!selfieBlob && !selfiePreview.startsWith("data:"))) {
+      console.log("Validation failed: No selfiePreview or invalid format.");
+      alert("Silakan ambil foto selfie terlebih dahulu!");
       return;
     }
 
@@ -1178,10 +1191,10 @@ export default function App() {
 
     // Map checked task objects
     const items = Object.keys(checkinSelectedTaskIds)
-      .filter(id => checkinSelectedTaskIds[id])
-      .map(id => ({
+      .filter((id) => checkinSelectedTaskIds[id])
+      .map((id) => ({
         taskId: id,
-        note: checkinTaskNotes[id] || ''
+        note: checkinTaskNotes[id] || "",
       }));
 
     // Blocker object
@@ -1190,16 +1203,16 @@ export default function App() {
       blocker = {
         taskId: blockerTaskId,
         description: blockerDescription,
-        mentionedUserIds: blockerMentions
+        mentionedUserIds: blockerMentions,
       };
     }
 
     // Fetch GPS coordinates
-    console.log('Validation passed. Requesting geolocation...');
+    console.log("Validation passed. Requesting geolocation...");
     setLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        console.log('Geolocation success callback invoked! lat:', pos.coords.latitude, 'lng:', pos.coords.longitude);
+        console.log("Geolocation success callback invoked! lat:", pos.coords.latitude, "lng:", pos.coords.longitude);
         const lat = pos.coords.latitude.toString();
         const lng = pos.coords.longitude.toString();
         const accuracy = pos.coords.accuracy.toString();
@@ -1211,21 +1224,21 @@ export default function App() {
           lng,
           accuracy,
           items: JSON.stringify(items),
-          blocker: blocker ? JSON.stringify(blocker) : '',
+          blocker: blocker ? JSON.stringify(blocker) : "",
           dailyNote: checkinDailyNote,
           deviceTimestamp,
-          selfieBase64: selfiePreview
+          selfieBase64: selfiePreview,
         };
 
         if (!navigator.onLine) {
           // OFFLINE SAVE
           await OfflineDB.add({
             idempotencyKey,
-            type: 'IN',
+            type: "IN",
             payload,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
-          alert('Anda sedang offline. Data check-in disimpan lokal di IndexedDB.');
+          alert("Anda sedang offline. Data check-in disimpan lokal di IndexedDB.");
           checkOfflineQueueCount();
           setLoading(false);
           resetCheckinForm();
@@ -1236,51 +1249,51 @@ export default function App() {
         // ONLINE UPLOAD
         try {
           const formData = new FormData();
-          formData.append('workStatus', checkinWorkStatus);
-          formData.append('clientProjectId', checkinClientProjectId);
-          formData.append('lat', lat);
-          formData.append('lng', lng);
-          formData.append('accuracy', accuracy);
-          formData.append('items', JSON.stringify(items));
-          if (blocker) formData.append('blocker', JSON.stringify(blocker));
-          formData.append('dailyNote', checkinDailyNote);
-          formData.append('deviceTimestamp', deviceTimestamp);
-          formData.append('isOfflineSync', 'false');
-          formData.append('selfie', selfieBlob || dataURLtoBlob(selfiePreview), 'selfie.jpg');
+          formData.append("workStatus", checkinWorkStatus);
+          formData.append("clientProjectId", checkinClientProjectId);
+          formData.append("lat", lat);
+          formData.append("lng", lng);
+          formData.append("accuracy", accuracy);
+          formData.append("items", JSON.stringify(items));
+          if (blocker) formData.append("blocker", JSON.stringify(blocker));
+          formData.append("dailyNote", checkinDailyNote);
+          formData.append("deviceTimestamp", deviceTimestamp);
+          formData.append("isOfflineSync", "false");
+          formData.append("selfie", selfieBlob || dataURLtoBlob(selfiePreview), "selfie.jpg");
 
           const res = await fetch(`${API_URL}/attendance/checkins`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Idempotency-Key': idempotencyKey
+              Authorization: `Bearer ${token}`,
+              "Idempotency-Key": idempotencyKey,
             },
-            body: formData
+            body: formData,
           });
 
           if (res.ok) {
-            alert('Check-in Berhasil!');
+            alert("Check-in Berhasil!");
             resetCheckinForm();
             fetchTodayStatus();
           } else {
             const err = await res.json();
-            if (err.message === 'CHECKIN_ON_LEAVE_DAY') {
-              if (confirm('Hari ini libur/cuti. Tetap lanjutkan check-in secara paksa (force)?')) {
+            if (err.message === "CHECKIN_ON_LEAVE_DAY") {
+              if (confirm("Hari ini libur/cuti. Tetap lanjutkan check-in secara paksa (force)?")) {
                 // Force checkin override
                 await forceCheckin(formData, idempotencyKey);
               }
             } else {
-              alert(err.message || 'Check-in Gagal');
+              alert(err.message || "Check-in Gagal");
             }
           }
         } catch (err) {
           // Network failure -> Save to IndexedDB
           await OfflineDB.add({
             idempotencyKey,
-            type: 'IN',
+            type: "IN",
             payload,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
-          alert('Koneksi terganggu. Check-in disimpan offline.');
+          alert("Koneksi terganggu. Check-in disimpan offline.");
           checkOfflineQueueCount();
           resetCheckinForm();
           fetchTodayStatus();
@@ -1289,11 +1302,11 @@ export default function App() {
         }
       },
       (err) => {
-        console.error('Geolocation failed error callback invoked:', err.code, err.message);
+        console.error("Geolocation failed error callback invoked:", err.code, err.message);
         setLoading(false);
         alert(`Gagal mengakses lokasi (GPS): ${err.message}. Izin lokasi wajib disetujui untuk Check-in.`);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
@@ -1301,23 +1314,23 @@ export default function App() {
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/attendance/checkins?force=true`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Idempotency-Key': idempotencyKey
+          Authorization: `Bearer ${token}`,
+          "Idempotency-Key": idempotencyKey,
         },
-        body: formData
+        body: formData,
       });
       if (res.ok) {
-        alert('Check-in Paksa Berhasil!');
+        alert("Check-in Paksa Berhasil!");
         resetCheckinForm();
         fetchTodayStatus();
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal');
+        alert(err.message || "Gagal");
       }
     } catch (e) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     } finally {
       setLoading(false);
     }
@@ -1325,8 +1338,8 @@ export default function App() {
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selfiePreview || (!selfieBlob && !selfiePreview.startsWith('data:'))) {
-      alert('Silakan ambil foto selfie check-out terlebih dahulu!');
+    if (!selfiePreview || (!selfieBlob && !selfiePreview.startsWith("data:"))) {
+      alert("Silakan ambil foto selfie check-out terlebih dahulu!");
       return;
     }
 
@@ -1334,17 +1347,21 @@ export default function App() {
     const deviceTimestamp = new Date().toISOString();
 
     // Map checkout updates
-    const updates = todayData.activeSprintTasks.map((t: any) => ({
-      taskId: t.id,
-      percent: (checkoutTaskPercents[t.id] ?? 0).toString(),
-      status: checkoutTaskStatuses[t.id] || TaskStatus.NOT_STARTED,
-      evidence: checkoutTaskEvidences[t.id] || ''
-    })).concat(todayData.carryOverTasks.map((t: any) => ({
-      taskId: t.id,
-      percent: (checkoutTaskPercents[t.id] ?? 0).toString(),
-      status: checkoutTaskStatuses[t.id] || TaskStatus.NOT_STARTED,
-      evidence: checkoutTaskEvidences[t.id] || ''
-    })));
+    const updates = todayData.activeSprintTasks
+      .map((t: any) => ({
+        taskId: t.id,
+        percent: (checkoutTaskPercents[t.id] ?? 0).toString(),
+        status: checkoutTaskStatuses[t.id] || TaskStatus.NOT_STARTED,
+        evidence: checkoutTaskEvidences[t.id] || "",
+      }))
+      .concat(
+        todayData.carryOverTasks.map((t: any) => ({
+          taskId: t.id,
+          percent: (checkoutTaskPercents[t.id] ?? 0).toString(),
+          status: checkoutTaskStatuses[t.id] || TaskStatus.NOT_STARTED,
+          evidence: checkoutTaskEvidences[t.id] || "",
+        })),
+      );
 
     setLoading(true);
     navigator.geolocation.getCurrentPosition(
@@ -1358,19 +1375,19 @@ export default function App() {
           updates: JSON.stringify(updates),
           dailyNote: checkoutDailyNote,
           deviceTimestamp,
-          selfieBase64: selfiePreview
+          selfieBase64: selfiePreview,
         };
 
         if (!navigator.onLine) {
           // OFFLINE SAVE
           await OfflineDB.add({
             idempotencyKey,
-            type: 'OUT',
+            type: "OUT",
             checkinId: todayData.todayCheckin.id,
             payload,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
-          alert('Anda sedang offline. Data check-out disimpan lokal di IndexedDB.');
+          alert("Anda sedang offline. Data check-out disimpan lokal di IndexedDB.");
           checkOfflineQueueCount();
           setLoading(false);
           resetCheckoutForm();
@@ -1381,41 +1398,41 @@ export default function App() {
         // ONLINE UPLOAD
         try {
           const formData = new FormData();
-          formData.append('lat', lat);
-          formData.append('lng', lng);
-          formData.append('updates', JSON.stringify(updates));
-          formData.append('dailyNote', checkoutDailyNote);
-          formData.append('deviceTimestamp', deviceTimestamp);
-          formData.append('isOfflineSync', 'false');
-          formData.append('selfie', selfieBlob || dataURLtoBlob(selfiePreview), 'selfie.jpg');
+          formData.append("lat", lat);
+          formData.append("lng", lng);
+          formData.append("updates", JSON.stringify(updates));
+          formData.append("dailyNote", checkoutDailyNote);
+          formData.append("deviceTimestamp", deviceTimestamp);
+          formData.append("isOfflineSync", "false");
+          formData.append("selfie", selfieBlob || dataURLtoBlob(selfiePreview), "selfie.jpg");
 
           const res = await fetch(`${API_URL}/attendance/checkins/${todayData.todayCheckin.id}/checkout`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Idempotency-Key': idempotencyKey
+              Authorization: `Bearer ${token}`,
+              "Idempotency-Key": idempotencyKey,
             },
-            body: formData
+            body: formData,
           });
 
           if (res.ok) {
-            alert('Check-out Berhasil!');
+            alert("Check-out Berhasil!");
             resetCheckoutForm();
             fetchTodayStatus();
           } else {
             const err = await res.json();
-            alert(err.message || 'Check-out Gagal');
+            alert(err.message || "Check-out Gagal");
           }
         } catch (err) {
           // Network failure -> Save offline
           await OfflineDB.add({
             idempotencyKey,
-            type: 'OUT',
+            type: "OUT",
             checkinId: todayData.todayCheckin.id,
             payload,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
-          alert('Koneksi terganggu. Check-out disimpan offline.');
+          alert("Koneksi terganggu. Check-out disimpan offline.");
           checkOfflineQueueCount();
           resetCheckoutForm();
           fetchTodayStatus();
@@ -1426,12 +1443,13 @@ export default function App() {
       (err) => {
         setLoading(false);
         alert(`Gagal mengakses lokasi (GPS): ${err.message}. Izin lokasi wajib disetujui untuk Check-out.`);
-      }
+      },
     );
   };
 
   const dataURLtoBlob = (dataurl: string) => {
-    const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)![1];
+    const arr = dataurl.split(","),
+      mime = arr[0].match(/:(.*?);/)![1];
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
@@ -1444,19 +1462,19 @@ export default function App() {
   const resetCheckinForm = () => {
     setSelfiePreview(null);
     setSelfieBlob(null);
-    setCheckinDailyNote('');
+    setCheckinDailyNote("");
     setCheckinSelectedTaskIds({});
     setCheckinTaskNotes({});
     setHasBlocker(false);
-    setBlockerTaskId('');
-    setBlockerDescription('');
+    setBlockerTaskId("");
+    setBlockerDescription("");
     setBlockerMentions([]);
   };
 
   const resetCheckoutForm = () => {
     setSelfiePreview(null);
     setSelfieBlob(null);
-    setCheckoutDailyNote('');
+    setCheckoutDailyNote("");
   };
 
   // ==========================================
@@ -1464,7 +1482,7 @@ export default function App() {
   // ==========================================
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     const body = {
       ...userForm,
       departmentId: userForm.departmentId || null,
@@ -1472,32 +1490,32 @@ export default function App() {
       managerId: userForm.managerId || null,
     };
     try {
-      let res = selectedUser 
-        ? await fetch(`${API_URL}/admin/users/${selectedUser.id}`, { method: 'PATCH', headers, body: JSON.stringify(body) })
-        : await fetch(`${API_URL}/admin/users`, { method: 'POST', headers, body: JSON.stringify(body) });
+      let res = selectedUser
+        ? await fetch(`${API_URL}/admin/users/${selectedUser.id}`, { method: "PATCH", headers, body: JSON.stringify(body) })
+        : await fetch(`${API_URL}/admin/users`, { method: "POST", headers, body: JSON.stringify(body) });
       if (res.ok) {
         setUserModalOpen(false);
         fetchAdminMasterData();
         resetUserForm();
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal menyimpan user');
+        alert(err.message || "Gagal menyimpan user");
       }
     } catch (err) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     }
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) return;
     try {
       const res = await fetch(`${API_URL}/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) fetchAdminMasterData();
     } catch (err) {
-      alert('Gagal menghapus pengguna');
+      alert("Gagal menghapus pengguna");
     }
   };
 
@@ -1507,14 +1525,14 @@ export default function App() {
       email: userObj.email,
       fullName: userObj.full_name,
       nik: userObj.nik,
-      password: '',
-      departmentId: userObj.department_id || '',
-      functionalRoleId: userObj.functional_role_id || '',
-      managerId: userObj.manager_id || '',
+      password: "",
+      departmentId: userObj.department_id || "",
+      functionalRoleId: userObj.functional_role_id || "",
+      managerId: userObj.manager_id || "",
       systemRoles: userObj.system_roles,
       timezone: userObj.timezone,
       checkinMode: userObj.checkin_mode,
-      leaveBalance: userObj.leave_balance
+      leaveBalance: userObj.leave_balance,
     });
     setUserModalOpen(true);
   };
@@ -1522,8 +1540,17 @@ export default function App() {
   const resetUserForm = () => {
     setSelectedUser(null);
     setUserForm({
-      email: '', fullName: '', nik: '', password: '', departmentId: '', functionalRoleId: '',
-      managerId: '', systemRoles: ['EMPLOYEE'], timezone: 'Asia/Jakarta', checkinMode: 'TWICE', leaveBalance: 12
+      email: "",
+      fullName: "",
+      nik: "",
+      password: "",
+      departmentId: "",
+      functionalRoleId: "",
+      managerId: "",
+      systemRoles: ["EMPLOYEE"],
+      timezone: "Asia/Jakarta",
+      checkinMode: "TWICE",
+      leaveBalance: 12,
     });
   };
 
@@ -1534,21 +1561,21 @@ export default function App() {
     let example: (string | number)[];
     let fileName: string;
 
-    if (importType === 'users') {
+    if (importType === "users") {
       // Header WAJIB sama persis dengan yang dibaca parser backend
       // (admin.controller.ts previewUserImport), yang berbahasa Indonesia.
-      headers = ['Email', 'Nama Lengkap', 'NIK', 'Departemen', 'Peran Fungsional', 'Zona Waktu', 'Check-in Mode', 'Email Atasan', 'Sandi'];
-      example = ['budi@indotek.co.id', 'Budi Santoso', 'EMP-100', 'Engineering', 'BE', 'Asia/Jakarta', 'TWICE', 'manager.eng@indotek.com', 'Rahasia123'];
-      fileName = 'template_import_karyawan.xlsx';
+      headers = ["Email", "Nama Lengkap", "NIK", "Departemen", "Peran Fungsional", "Zona Waktu", "Check-in Mode", "Email Atasan", "Sandi"];
+      example = ["budi@indotek.co.id", "Budi Santoso", "EMP-100", "Engineering", "BE", "Asia/Jakarta", "TWICE", "manager.eng@indotek.com", "Rahasia123"];
+      fileName = "template_import_karyawan.xlsx";
     } else {
-      headers = ['Sprint', 'Workstream', 'Task', 'Deliverable', 'Priority', 'Planned Start', 'Planned End', 'Role', 'Owner', 'Status', '% Complete', 'Weight', 'Risk Level', 'Notes'];
-      example = [1, 'Backend', 'Contoh judul tugas', 'API endpoint selesai', 'MEDIUM', '2026-01-06', '2026-01-10', 'BE', 'budi@indotek.co.id', 'NOT_STARTED', 0, 1.0, 'LOW', 'Opsional catatan'];
-      fileName = 'template_import_sprint_tasks.xlsx';
+      headers = ["Sprint", "Workstream", "Task", "Deliverable", "Priority", "Planned Start", "Planned End", "Role", "Owner", "Status", "% Complete", "Weight", "Risk Level", "Notes"];
+      example = [1, "Backend", "Contoh judul tugas", "API endpoint selesai", "MEDIUM", "2026-01-06", "2026-01-10", "BE", "budi@indotek.co.id", "NOT_STARTED", 0, 1.0, "LOW", "Opsional catatan"];
+      fileName = "template_import_sprint_tasks.xlsx";
     }
 
     const ws = XLSX.utils.aoa_to_sheet([headers, example]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, fileName);
   };
 
@@ -1558,30 +1585,30 @@ export default function App() {
 
     const file = files[0];
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     setImportLoading(true);
     setImportCommitMessage(null);
     try {
       let url = `${API_URL}/admin/users/import/preview`;
-      if (importType === 'tasks') {
+      if (importType === "tasks") {
         url = `${API_URL}/tasks/import/preview?projectId=${importSelectedProjectId}`;
       }
 
       const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
-      
+
       const data = await res.json();
       if (res.ok) {
         setImportPreview(data);
       } else {
-        alert(data.message || 'Gagal mengunggah file Excel');
+        alert(data.message || "Gagal mengunggah file Excel");
       }
     } catch (err) {
-      alert('Koneksi ke server gagal');
+      alert("Koneksi ke server gagal");
     } finally {
       setImportLoading(false);
     }
@@ -1594,20 +1621,20 @@ export default function App() {
       let url = `${API_URL}/admin/users/import/commit`;
       let body: any = { rows: importPreview.rows };
 
-      if (importType === 'tasks') {
+      if (importType === "tasks") {
         url = `${API_URL}/tasks/import/commit`;
         body = { previewId: importPreview.previewId };
       }
 
       const res = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
-      
+
       const data = await res.json();
       if (res.ok) {
         setImportCommitMessage(data.message);
@@ -1618,10 +1645,10 @@ export default function App() {
           setImportCommitMessage(null);
         }, 2000);
       } else {
-        alert(data.message || 'Gagal menyimpan data impor');
+        alert(data.message || "Gagal menyimpan data impor");
       }
     } catch (err) {
-      alert('Koneksi ke server gagal');
+      alert("Koneksi ke server gagal");
     } finally {
       setImportLoading(false);
     }
@@ -1630,125 +1657,134 @@ export default function App() {
   const handleExportPDP = async (userId: string, name: string) => {
     try {
       const res = await fetch(`${API_URL}/admin/users/${userId}/export-personal-data`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `pdp_export_${name.toLowerCase().replace(/\s+/g, '_')}.json`;
+        a.download = `pdp_export_${name.toLowerCase().replace(/\s+/g, "_")}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       }
     } catch (err) {
-      alert('Koneksi gagal');
+      alert("Koneksi gagal");
     }
   };
 
   // Projects & Sprints CRUD
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     try {
       let res = selectedProject
-        ? await fetch(`${API_URL}/tasks/projects/${selectedProject.id}`, { method: 'PATCH', headers, body: JSON.stringify(projectForm) })
-        : await fetch(`${API_URL}/tasks/projects`, { method: 'POST', headers, body: JSON.stringify(projectForm) });
+        ? await fetch(`${API_URL}/tasks/projects/${selectedProject.id}`, { method: "PATCH", headers, body: JSON.stringify(projectForm) })
+        : await fetch(`${API_URL}/tasks/projects`, { method: "POST", headers, body: JSON.stringify(projectForm) });
       if (res.ok) {
         setProjectModalOpen(false);
         fetchAdminMasterData();
         resetProjectForm();
       }
     } catch (err) {
-      alert('Gagal menyimpan project');
+      alert("Gagal menyimpan project");
     }
   };
 
   const resetProjectForm = () => {
     setSelectedProject(null);
-    setProjectForm({ name: '', codePrefix: '', status: 'ACTIVE' });
+    setProjectForm({ name: "", codePrefix: "", status: "ACTIVE" });
   };
 
   const handleSaveSprint = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     try {
       let res = selectedSprint
-        ? await fetch(`${API_URL}/tasks/sprints/${selectedSprint.id}`, { method: 'PATCH', headers, body: JSON.stringify(sprintForm) })
-        : await fetch(`${API_URL}/tasks/sprints`, { method: 'POST', headers, body: JSON.stringify(sprintForm) });
-      
+        ? await fetch(`${API_URL}/tasks/sprints/${selectedSprint.id}`, { method: "PATCH", headers, body: JSON.stringify(sprintForm) })
+        : await fetch(`${API_URL}/tasks/sprints`, { method: "POST", headers, body: JSON.stringify(sprintForm) });
+
       if (res.ok) {
         setSprintModalOpen(false);
         fetchAdminMasterData();
         resetSprintForm();
       } else {
         const data = await res.json();
-        if (data.message === 'SPRINT_OVERLAP') {
-          alert('Error: SPRINT_OVERLAP. Tanggal sprint tidak boleh saling tumpang tindih dalam satu project!');
+        if (data.message === "SPRINT_OVERLAP") {
+          alert("Error: SPRINT_OVERLAP. Tanggal sprint tidak boleh saling tumpang tindih dalam satu project!");
         } else {
-          alert(data.message || 'Gagal menyimpan sprint');
+          alert(data.message || "Gagal menyimpan sprint");
         }
       }
     } catch (err) {
-      alert('Gagal menyimpan sprint');
+      alert("Gagal menyimpan sprint");
     }
   };
 
   const resetSprintForm = () => {
     setSelectedSprint(null);
-    setSprintForm({ projectId: '', number: '', startDate: '', endDate: '', goal: '' });
+    setSprintForm({ projectId: "", number: "", startDate: "", endDate: "", goal: "" });
   };
 
   // Tasks CRUD
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     const body = {
       ...taskForm,
       functionalRoleId: taskForm.functionalRoleId || null,
       percentComplete: Number(taskForm.percentComplete),
-      weight: Number(taskForm.weight)
+      weight: Number(taskForm.weight),
     };
 
     try {
-      let res = selectedTask
-        ? await fetch(`${API_URL}/tasks/${selectedTask.id}`, { method: 'PATCH', headers, body: JSON.stringify(body) })
-        : await fetch(`${API_URL}/tasks`, { method: 'POST', headers, body: JSON.stringify(body) });
-      
+      let res = selectedTask ? await fetch(`${API_URL}/tasks/${selectedTask.id}`, { method: "PATCH", headers, body: JSON.stringify(body) }) : await fetch(`${API_URL}/tasks`, { method: "POST", headers, body: JSON.stringify(body) });
+
       if (res.ok) {
         setTaskModalOpen(false);
         fetchAdminMasterData();
         resetTaskForm();
       } else {
         const data = await res.json();
-        alert(data.message || 'Gagal menyimpan tugas');
+        alert(data.message || "Gagal menyimpan tugas");
       }
     } catch (err) {
-      alert('Gagal menyimpan tugas');
+      alert("Gagal menyimpan tugas");
     }
   };
 
   const resetTaskForm = () => {
     setSelectedTask(null);
     setTaskForm({
-      projectId: '', sprintId: '', functionalRoleId: '', workstream: 'General', title: '',
-      deliverable: '', priority: 'MEDIUM', plannedStart: '', plannedEnd: '', status: 'NOT_STARTED',
-      percentComplete: 0, weight: 1.0, riskLevel: 'LOW', notes: ''
+      projectId: "",
+      sprintId: "",
+      functionalRoleId: "",
+      workstream: "General",
+      title: "",
+      deliverable: "",
+      priority: "MEDIUM",
+      plannedStart: "",
+      plannedEnd: "",
+      status: "NOT_STARTED",
+      percentComplete: 0,
+      weight: 1.0,
+      riskLevel: "LOW",
+      notes: "",
     });
   };
 
   const handleUpdateTaskStatusAndProgress = async (id: string, newStatus: string, newProgress: number) => {
     try {
       const res = await fetch(`${API_URL}/tasks/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: newStatus, percentComplete: newProgress })
+        body: JSON.stringify({ status: newStatus, percentComplete: newProgress }),
       });
       if (res.ok) {
         fetchFilteredTasks();
@@ -1757,7 +1793,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error('Failed to update task status/progress', err);
+      console.error("Failed to update task status/progress", err);
     }
   };
 
@@ -1769,23 +1805,23 @@ export default function App() {
     setAssignModalOpen(true);
     try {
       const res = await fetch(`${API_URL}/tasks/assignable-users`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setUsersList(await res.json());
     } catch (err) {
-      console.error('Failed to fetch assignable users', err);
+      console.error("Failed to fetch assignable users", err);
     }
   };
 
   const handleAssignOwner = async (taskId: string, userId: string) => {
     try {
       const res = await fetch(`${API_URL}/tasks/${taskId}/assign`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ userId }),
       });
       if (res.ok) {
         setAssignModalOpen(false);
@@ -1793,17 +1829,17 @@ export default function App() {
         fetchFilteredTasks();
       }
     } catch (err) {
-      alert('Gagal menetapkan owner tugas');
+      alert("Gagal menetapkan owner tugas");
     }
   };
 
   // Profile & password (self-service)
   const openProfileView = () => {
-    if (user) setProfileForm({ fullName: user.fullName || '', timezone: user.timezone || 'Asia/Jakarta' });
+    if (user) setProfileForm({ fullName: user.fullName || "", timezone: user.timezone || "Asia/Jakarta" });
     setProfileMsg(null);
     setPasswordMsg(null);
-    setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
-    setActiveTab('profil');
+    setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    setActiveTab("profil");
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -1812,19 +1848,19 @@ export default function App() {
     setProfileMsg(null);
     try {
       const res = await fetch(`${API_URL}/auth/me`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(profileForm),
       });
       const data = await res.json();
       if (res.ok) {
-        setProfileMsg({ ok: true, text: 'Profil berhasil diperbarui.' });
+        setProfileMsg({ ok: true, text: "Profil berhasil diperbarui." });
         fetchProfile();
       } else {
-        setProfileMsg({ ok: false, text: data?.message || 'Gagal memperbarui profil.' });
+        setProfileMsg({ ok: false, text: data?.message || "Gagal memperbarui profil." });
       }
     } catch (err) {
-      setProfileMsg({ ok: false, text: 'Gagal terhubung ke server.' });
+      setProfileMsg({ ok: false, text: "Gagal terhubung ke server." });
     } finally {
       setProfileSaving(false);
     }
@@ -1834,29 +1870,29 @@ export default function App() {
     e.preventDefault();
     setPasswordMsg(null);
     if (passwordForm.newPassword.length < 8) {
-      setPasswordMsg({ ok: false, text: 'Sandi baru minimal 8 karakter.' });
+      setPasswordMsg({ ok: false, text: "Sandi baru minimal 8 karakter." });
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordMsg({ ok: false, text: 'Konfirmasi sandi tidak cocok.' });
+      setPasswordMsg({ ok: false, text: "Konfirmasi sandi tidak cocok." });
       return;
     }
     setPasswordSaving(true);
     try {
       const res = await fetch(`${API_URL}/auth/password/change`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ oldPassword: passwordForm.oldPassword, newPassword: passwordForm.newPassword }),
       });
       const data = await res.json();
       if (res.ok) {
-        setPasswordMsg({ ok: true, text: 'Sandi berhasil diperbarui.' });
-        setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+        setPasswordMsg({ ok: true, text: "Sandi berhasil diperbarui." });
+        setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
       } else {
-        setPasswordMsg({ ok: false, text: data?.message || 'Gagal memperbarui sandi.' });
+        setPasswordMsg({ ok: false, text: data?.message || "Gagal memperbarui sandi." });
       }
     } catch (err) {
-      setPasswordMsg({ ok: false, text: 'Gagal terhubung ke server.' });
+      setPasswordMsg({ ok: false, text: "Gagal terhubung ke server." });
     } finally {
       setPasswordSaving(false);
     }
@@ -1865,46 +1901,58 @@ export default function App() {
   // Locations & Holidays
   const handleSaveLocation = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     try {
       let res = selectedLocation
-        ? await fetch(`${API_URL}/admin/locations/${selectedLocation.id}`, { method: 'PATCH', headers, body: JSON.stringify(locationForm) })
-        : await fetch(`${API_URL}/admin/locations`, { method: 'POST', headers, body: JSON.stringify(locationForm) });
-      if (res.ok) { setLocationModalOpen(false); fetchAdminMasterData(); resetLocationForm(); }
-    } catch (err) { alert('Gagal'); }
+        ? await fetch(`${API_URL}/admin/locations/${selectedLocation.id}`, { method: "PATCH", headers, body: JSON.stringify(locationForm) })
+        : await fetch(`${API_URL}/admin/locations`, { method: "POST", headers, body: JSON.stringify(locationForm) });
+      if (res.ok) {
+        setLocationModalOpen(false);
+        fetchAdminMasterData();
+        resetLocationForm();
+      }
+    } catch (err) {
+      alert("Gagal");
+    }
   };
 
   const openEditLocation = (loc: any) => {
     setSelectedLocation(loc);
-    setLocationForm({ name: loc.name, type: loc.type, lat: loc.lat || '', lng: loc.lng || '', radiusM: loc.radius_m || '200' });
+    setLocationForm({ name: loc.name, type: loc.type, lat: loc.lat || "", lng: loc.lng || "", radiusM: loc.radius_m || "200" });
     setLocationModalOpen(true);
   };
 
   const resetLocationForm = () => {
     setSelectedLocation(null);
-    setLocationForm({ name: '', type: 'OFFICE', lat: '', lng: '', radiusM: '200' });
+    setLocationForm({ name: "", type: "OFFICE", lat: "", lng: "", radiusM: "200" });
   };
 
   const handleSaveHoliday = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     try {
       let res = selectedHoliday
-        ? await fetch(`${API_URL}/admin/holidays/${selectedHoliday.id}`, { method: 'PATCH', headers, body: JSON.stringify(holidayForm) })
-        : await fetch(`${API_URL}/admin/holidays`, { method: 'POST', headers, body: JSON.stringify(holidayForm) });
-      if (res.ok) { setHolidayModalOpen(false); fetchAdminMasterData(); resetHolidayForm(); }
-    } catch (err) { alert('Gagal'); }
+        ? await fetch(`${API_URL}/admin/holidays/${selectedHoliday.id}`, { method: "PATCH", headers, body: JSON.stringify(holidayForm) })
+        : await fetch(`${API_URL}/admin/holidays`, { method: "POST", headers, body: JSON.stringify(holidayForm) });
+      if (res.ok) {
+        setHolidayModalOpen(false);
+        fetchAdminMasterData();
+        resetHolidayForm();
+      }
+    } catch (err) {
+      alert("Gagal");
+    }
   };
 
   const openEditHoliday = (hol: any) => {
     setSelectedHoliday(hol);
-    setHolidayForm({ date: new Date(hol.date).toISOString().split('T')[0], name: hol.name, isCutiBersama: hol.is_cuti_bersama });
+    setHolidayForm({ date: new Date(hol.date).toISOString().split("T")[0], name: hol.name, isCutiBersama: hol.is_cuti_bersama });
     setHolidayModalOpen(true);
   };
 
   const resetHolidayForm = () => {
     setSelectedHoliday(null);
-    setHolidayForm({ date: '', name: '', isCutiBersama: false });
+    setHolidayForm({ date: "", name: "", isCutiBersama: false });
   };
 
   if (loading) {
@@ -1932,10 +1980,12 @@ export default function App() {
             </div>
           </div>
           <div className="relative max-w-md">
-            <h1 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight">Satu ritual harian,<br />tiga data penting.</h1>
-            <p className="mt-4 text-sky-100/90 text-sm leading-relaxed">
-              Kehadiran, progres tugas, dan performa tim — semuanya mengalir dari satu standup harian. Kelola kerja hybrid dengan rapi dan transparan.
-            </p>
+            <h1 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight">
+              Satu ritual harian,
+              <br />
+              tiga data penting.
+            </h1>
+            <p className="mt-4 text-sky-100/90 text-sm leading-relaxed">Kehadiran, progres tugas, dan performa tim — semuanya mengalir dari satu standup harian. Kelola kerja hybrid dengan rapi dan transparan.</p>
           </div>
           <div className="relative text-xs text-sky-100/70">© {new Date().getFullYear()} PT Indotek Buana Karya</div>
         </div>
@@ -1959,39 +2009,52 @@ export default function App() {
               )}
 
               <div>
-                <label htmlFor="email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Email Karyawan</label>
+                <label htmlFor="email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Email Karyawan
+                </label>
                 <input
-                  id="email" type="email" required autoComplete="email"
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
                   placeholder="nama@indoteksaft.co.id"
-                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
               <div>
-                <label htmlFor="pass" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Kata Sandi</label>
+                <label htmlFor="pass" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Kata Sandi
+                </label>
                 <input
-                  id="pass" type="password" required autoComplete="current-password"
+                  id="pass"
+                  type="password"
+                  required
+                  autoComplete="current-password"
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
                   placeholder="••••••••••••"
-                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
 
               <button
-                type="submit" disabled={loginLoading}
+                type="submit"
+                disabled={loginLoading}
                 className="flex w-full items-center justify-center rounded-lg bg-sky-500 py-3 text-sm font-semibold text-white hover:bg-sky-600 active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {loginLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Masuk'}
+                {loginLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Masuk"}
               </button>
             </form>
 
-            <div className="mt-8 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-500 space-y-1">
+            {/* <div className="mt-8 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-500 space-y-1">
               <span className="font-semibold text-slate-600 block mb-1">Pengguna Seed Uji Coba:</span>
               <div><span className="text-slate-600">Email:</span> superadmin@indotek.com</div>
               <div><span className="text-slate-600">Sandi:</span> SuperSecurePassword123</div>
               <div><span className="text-slate-600">Peran:</span> SUPER_ADMIN</div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -2000,12 +2063,12 @@ export default function App() {
 
   const renderDesktopLayout = () => {
     const navItems = [
-      { id: 'hari_ini', label: 'Kehadiran & Standup', icon: Calendar },
-      { id: 'feed', label: 'Feed Tim', icon: FileCheck2 },
-      { id: 'leave', label: 'Cuti & Persetujuan', icon: Layers },
-      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'task', label: 'Task Saya & Tim', icon: CheckSquare },
-      { id: 'admin', label: 'Admin Panel', icon: Settings },
+      { id: "hari_ini", label: "Kehadiran & Standup", icon: Calendar },
+      { id: "feed", label: "Feed Tim", icon: FileCheck2 },
+      { id: "leave", label: "Cuti & Persetujuan", icon: Layers },
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "task", label: "Task Saya & Tim", icon: CheckSquare },
+      { id: "admin", label: "Admin Panel", icon: Settings },
     ];
 
     return (
@@ -2026,9 +2089,7 @@ export default function App() {
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all group ${
-                      isActive 
-                        ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/10' 
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      isActive ? "bg-sky-500 text-white shadow-sm shadow-sky-500/10" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2043,14 +2104,14 @@ export default function App() {
 
           <div className="p-4 border-t border-slate-200">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center font-bold text-sky-600">
-                SA
-              </div>
+              <div className="h-9 w-9 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center font-bold text-sky-600">SA</div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-slate-900 truncate">{user.fullName}</p>
                 <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
               </div>
-              <button onClick={handleLogout} className="text-slate-500 hover:text-red-600 p-1.5"><LogOut className="h-4 w-4" /></button>
+              <button onClick={handleLogout} className="text-slate-500 hover:text-red-600 p-1.5">
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </aside>
@@ -2062,18 +2123,10 @@ export default function App() {
             <div className="bg-amber-500 text-slate-900 text-xs px-6 py-2.5 font-bold flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2">
                 {isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
-                <span>
-                  {isOnline 
-                    ? `Terhubung kembali. Terdapat ${offlineCount} data antrean offline siap disinkronkan.`
-                    : 'Anda sedang offline. Sistem menyimpan semua check-in secara lokal di HP Anda.'
-                  }
-                </span>
+                <span>{isOnline ? `Terhubung kembali. Terdapat ${offlineCount} data antrean offline siap disinkronkan.` : "Anda sedang offline. Sistem menyimpan semua check-in secara lokal di HP Anda."}</span>
               </div>
               {isOnline && (
-                <button 
-                  onClick={syncOfflineQueue} disabled={syncingOffline}
-                  className="bg-slate-50 text-slate-900 rounded px-3 py-1 hover:bg-slate-100 flex items-center gap-1.5 disabled:opacity-50"
-                >
+                <button onClick={syncOfflineQueue} disabled={syncingOffline} className="bg-slate-50 text-slate-900 rounded px-3 py-1 hover:bg-slate-100 flex items-center gap-1.5 disabled:opacity-50">
                   {syncingOffline ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                   Sinkronkan Sekarang
                 </button>
@@ -2083,30 +2136,23 @@ export default function App() {
 
           <header className="h-16 border-b border-slate-200 bg-white/50 flex items-center justify-between px-8 shrink-0">
             <div className="text-slate-500 text-xs flex items-center gap-1.5">
-              <span>Sistem</span> <span>/</span> <span className="text-slate-900 font-medium capitalize">{activeTab.replace(/_/g, ' ')}</span>
+              <span>Sistem</span> <span>/</span> <span className="text-slate-900 font-medium capitalize">{activeTab.replace(/_/g, " ")}</span>
             </div>
             <div className="flex items-center gap-6">
-              <span className="text-[10px] px-2 py-1 rounded bg-slate-100 text-slate-500 font-semibold border border-slate-300">
-                {user.timezone}
-              </span>
+              <span className="text-[10px] px-2 py-1 rounded bg-slate-100 text-slate-500 font-semibold border border-slate-300">{user.timezone}</span>
               <div className="relative">
-                <button
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="relative text-slate-500 hover:text-slate-900 focus:outline-none"
-                >
+                <button onClick={() => setNotificationsOpen(!notificationsOpen)} className="relative text-slate-500 hover:text-slate-900 focus:outline-none">
                   <Bell className="h-5 w-5" />
-                  {notificationsList.length > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">
-                      {notificationsList.length}
-                    </span>
-                  )}
+                  {notificationsList.length > 0 && <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">{notificationsList.length}</span>}
                 </button>
 
                 {notificationsOpen && (
                   <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden text-xs">
                     <div className="p-3 border-b border-slate-200 font-bold text-slate-900 flex justify-between items-center bg-slate-50">
                       <span>Notifikasi ({notificationsList.length})</span>
-                      <button onClick={() => setNotificationsOpen(false)} className="text-[10px] text-slate-500 hover:text-slate-700">Tutup</button>
+                      <button onClick={() => setNotificationsOpen(false)} className="text-[10px] text-slate-500 hover:text-slate-700">
+                        Tutup
+                      </button>
                     </div>
                     <div className="max-h-64 overflow-y-auto divide-y divide-slate-200">
                       {notificationsList.length === 0 ? (
@@ -2116,22 +2162,16 @@ export default function App() {
                           const payload = n.payload_json || {};
                           return (
                             <div key={n.id} className="p-3 hover:bg-slate-100/30 space-y-1 text-left">
-                              <div className="font-semibold text-slate-900">{payload.title || 'Pemberitahuan'}</div>
-                              <p className="text-slate-500 text-[11px] leading-relaxed">{payload.message || ''}</p>
+                              <div className="font-semibold text-slate-900">{payload.title || "Pemberitahuan"}</div>
+                              <p className="text-slate-500 text-[11px] leading-relaxed">{payload.message || ""}</p>
                               {payload.fileKey && (
                                 <div className="mt-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => downloadReport(payload.fileKey)}
-                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-600 hover:text-sky-600 hover:underline"
-                                  >
+                                  <button type="button" onClick={() => downloadReport(payload.fileKey)} className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-600 hover:text-sky-600 hover:underline">
                                     <Download className="h-3 w-3" /> Unduh Laporan (XLSX)
                                   </button>
                                 </div>
                               )}
-                              <span className="text-[9px] text-slate-500 block font-mono">
-                                {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                              <span className="text-[9px] text-slate-500 block font-mono">{new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                             </div>
                           );
                         })
@@ -2141,37 +2181,28 @@ export default function App() {
                 )}
               </div>
               <div className="h-8 w-px bg-slate-100"></div>
-              <button
-                type="button"
-                onClick={openProfileView}
-                title="Profil & Keamanan"
-                className="flex items-center gap-3 hover:bg-slate-200/50 rounded-lg px-2 py-1 -mx-1 transition-colors focus:outline-none"
-              >
+              <button type="button" onClick={openProfileView} title="Profil & Keamanan" className="flex items-center gap-3 hover:bg-slate-200/50 rounded-lg px-2 py-1 -mx-1 transition-colors focus:outline-none">
                 <span className="text-xs font-semibold text-slate-600">{user.fullName}</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-600 border border-sky-500/30">
-                  {user.roles[0]}
-                </span>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-600 border border-sky-500/30">{user.roles[0]}</span>
               </button>
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-8">
-            {renderActiveView()}
-          </main>
+          <main className="flex-1 overflow-y-auto p-8">{renderActiveView()}</main>
         </div>
       </div>
     );
   };
 
   const renderMobileLayout = () => {
-    const hasDashboardAccess = user && user.roles && user.roles.some((r: string) => ['SUPER_ADMIN', 'MANAGER', 'PM_ADMIN'].includes(r));
+    const hasDashboardAccess = user && user.roles && user.roles.some((r: string) => ["SUPER_ADMIN", "MANAGER", "PM_ADMIN"].includes(r));
     const mobileTabs = [
-      { id: 'hari_ini', label: 'Hari Ini', icon: Calendar },
-      { id: 'feed', label: 'Feed Tim', icon: FileCheck2 },
-      { id: 'leave', label: 'Cuti & Inbox', icon: Layers },
-      ...(hasDashboardAccess ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
-      { id: 'task', label: 'Tasks', icon: CheckSquare },
-      { id: 'profil', label: 'Profil', icon: UserIcon },
+      { id: "hari_ini", label: "Hari Ini", icon: Calendar },
+      { id: "feed", label: "Feed Tim", icon: FileCheck2 },
+      { id: "leave", label: "Cuti & Inbox", icon: Layers },
+      ...(hasDashboardAccess ? [{ id: "dashboard", label: "Dashboard", icon: LayoutDashboard }] : []),
+      { id: "task", label: "Tasks", icon: CheckSquare },
+      { id: "profil", label: "Profil", icon: UserIcon },
     ];
 
     return (
@@ -2179,9 +2210,7 @@ export default function App() {
         {/* Offline Sync Banner */}
         {(!isOnline || offlineCount > 0) && (
           <div className="bg-amber-500 text-slate-900 text-[10px] px-4 py-2 font-bold flex justify-between items-center shrink-0">
-            <span className="truncate">
-              {isOnline ? `Terhubung. Ada ${offlineCount} data antrean.` : 'Mode Offline Aktif.'}
-            </span>
+            <span className="truncate">{isOnline ? `Terhubung. Ada ${offlineCount} data antrean.` : "Mode Offline Aktif."}</span>
             {isOnline && (
               <button onClick={syncOfflineQueue} disabled={syncingOffline} className="bg-slate-50 text-slate-900 rounded px-2 py-0.5">
                 Sync
@@ -2192,19 +2221,16 @@ export default function App() {
 
         <header className="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between shrink-0">
           <BrandLogo className="h-7" />
-          <button onClick={handleLogout} className="text-slate-500 hover:text-red-600"><LogOut className="h-4.5 w-4.5" /></button>
+          <button onClick={handleLogout} className="text-slate-500 hover:text-red-600">
+            <LogOut className="h-4.5 w-4.5" />
+          </button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 pb-20">
-          {renderActiveView()}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 pb-20">{renderActiveView()}</main>
 
         <nav className="fixed bottom-0 left-0 right-0 h-16 border-t border-slate-200 bg-white/90 backdrop-blur flex items-center justify-around z-50">
-          {mobileTabs.map(item => (
-            <button
-              key={item.id} onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-1 py-1 px-3 ${activeTab === item.id ? 'text-sky-600' : 'text-slate-500'}`}
-            >
+          {mobileTabs.map((item) => (
+            <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex flex-col items-center gap-1 py-1 px-3 ${activeTab === item.id ? "text-sky-600" : "text-slate-500"}`}>
               <item.icon className="h-5 w-5" />
               <span className="text-[10px]">{item.label}</span>
             </button>
@@ -2216,19 +2242,19 @@ export default function App() {
 
   const renderActiveView = () => {
     switch (activeTab) {
-      case 'hari_ini':
+      case "hari_ini":
         return renderHariIniView();
-      case 'feed':
+      case "feed":
         return renderFeedView();
-      case 'leave':
+      case "leave":
         return renderLeaveView();
-      case 'dashboard':
+      case "dashboard":
         return renderDashboardView();
-      case 'task':
+      case "task":
         return renderTaskView();
-      case 'admin':
+      case "admin":
         return renderAdminView();
-      case 'profil':
+      case "profil":
         return renderProfileView();
       default:
         return renderDashboardView();
@@ -2262,12 +2288,8 @@ export default function App() {
             <p className="text-xs text-slate-500 mt-1.5 font-medium">
               Tipe: <span className="text-sky-600 uppercase font-bold">{todayData.leaveType}</span>
             </p>
-            {todayData.leaveReason && (
-              <p className="text-[11px] text-slate-500 italic mt-2">"{todayData.leaveReason}"</p>
-            )}
-            <p className="text-xs text-emerald-600 mt-4 font-semibold">
-              Hari ini Anda dibebaskan dari kewajiban check-in. Selamat beristirahat!
-            </p>
+            {todayData.leaveReason && <p className="text-[11px] text-slate-500 italic mt-2">"{todayData.leaveReason}"</p>}
+            <p className="text-xs text-emerald-600 mt-4 font-semibold">Hari ini Anda dibebaskan dari kewajiban check-in. Selamat beristirahat!</p>
           </div>
         </div>
       );
@@ -2289,15 +2311,13 @@ export default function App() {
             <div className="flex justify-between py-2.5">
               <span className="text-slate-500">Check-in Pagi</span>
               <span className="font-semibold text-slate-900">
-                {new Date(todayCheckin.device_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(todayCheckin.device_timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 {todayCheckin.is_late && <span className="text-red-600 font-bold ml-1.5">(Terlambat)</span>}
               </span>
             </div>
             <div className="flex justify-between py-2.5">
               <span className="text-slate-500">Check-out Sore</span>
-              <span className="font-semibold text-slate-900">
-                {new Date(checkout.device_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              <span className="font-semibold text-slate-900">{new Date(checkout.device_timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
             </div>
             <div className="flex justify-between py-2.5">
               <span className="text-slate-500">Status Kerja</span>
@@ -2323,9 +2343,7 @@ export default function App() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-xl font-bold text-slate-900">Feed Aktivitas Tim</h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Pantau laporan harian standup tim Anda secara real-time.
-            </p>
+            <p className="text-xs text-slate-500 mt-1">Pantau laporan harian standup tim Anda secara real-time.</p>
           </div>
         </div>
 
@@ -2333,22 +2351,22 @@ export default function App() {
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
           <div className="flex flex-wrap gap-3 items-center">
             <Filter className="h-4 w-4 text-slate-500" />
-            
+
             {/* Team Filter Dropdown */}
-            <select
-              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
-              value={feedTeamFilter}
-              onChange={e => setFeedTeamFilter(e.target.value)}
-            >
+            <select className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none" value={feedTeamFilter} onChange={(e) => setFeedTeamFilter(e.target.value)}>
               <option value="">Tim Saya (Default)</option>
               <optgroup label="Departemen">
-                {departmentsList.map(d => (
-                  <option key={d.id} value={`DEPT:${d.id}`}>{d.name}</option>
+                {departmentsList.map((d) => (
+                  <option key={d.id} value={`DEPT:${d.id}`}>
+                    {d.name}
+                  </option>
                 ))}
               </optgroup>
               <optgroup label="Proyek">
-                {projectsList.map(p => (
-                  <option key={p.id} value={`PROJ:${p.id}`}>{p.name}</option>
+                {projectsList.map((p) => (
+                  <option key={p.id} value={`PROJ:${p.id}`}>
+                    {p.name}
+                  </option>
                 ))}
               </optgroup>
             </select>
@@ -2361,36 +2379,27 @@ export default function App() {
                 onClick={() => {
                   const d = new Date(feedDate);
                   d.setDate(d.getDate() - 1);
-                  setFeedDate(d.toISOString().split('T')[0]);
+                  setFeedDate(d.toISOString().split("T")[0]);
                 }}
               >
                 Sebelumnya
               </button>
-              <input
-                type="date"
-                className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono"
-                value={feedDate}
-                onChange={e => setFeedDate(e.target.value)}
-              />
+              <input type="date" className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono" value={feedDate} onChange={(e) => setFeedDate(e.target.value)} />
               <button
                 type="button"
                 className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-2.5 py-1.5 text-slate-600"
                 onClick={() => {
                   const d = new Date(feedDate);
                   d.setDate(d.getDate() + 1);
-                  setFeedDate(d.toISOString().split('T')[0]);
+                  setFeedDate(d.toISOString().split("T")[0]);
                 }}
               >
                 Selanjutnya
               </button>
             </div>
           </div>
-          
-          {feedData && (
-            <span className="text-[10px] px-2.5 py-1 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 font-bold uppercase">
-              {feedData.teamName}
-            </span>
-          )}
+
+          {feedData && <span className="text-[10px] px-2.5 py-1 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 font-bold uppercase">{feedData.teamName}</span>}
         </div>
 
         {fetchingFeed ? (
@@ -2401,33 +2410,27 @@ export default function App() {
           <div className="text-center py-20 bg-white/50 border border-slate-200 rounded-xl space-y-3">
             <Calendar className="h-10 w-10 text-slate-500 mx-auto" />
             <h4 className="font-bold text-slate-900 text-sm">Tidak Ada Entri Standup</h4>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto">
-              Belum ada anggota tim yang melakukan check-in pada tanggal ini.
-            </p>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto">Belum ada anggota tim yang melakukan check-in pada tanggal ini.</p>
           </div>
         ) : (
           <div className="space-y-6">
             {feedData.entries.map((entry: any) => (
-              <div 
-                key={entry.checkinId}
-                className={`p-6 border rounded-2xl shadow-md transition-all space-y-5 ${
-                  entry.hasOpenBlocker 
-                    ? 'border-amber-500/30 bg-amber-500/5 shadow-amber-500/5' 
-                    : 'border-slate-200 bg-white'
-                }`}
-              >
+              <div key={entry.checkinId} className={`p-6 border rounded-2xl shadow-md transition-all space-y-5 ${entry.hasOpenBlocker ? "border-amber-500/30 bg-amber-500/5 shadow-amber-500/5" : "border-slate-200 bg-white"}`}>
                 {/* Entry Header */}
                 <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-slate-200">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white">
-                      {entry.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                      {entry.fullName
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-slate-900 text-sm">{entry.fullName}</span>
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 uppercase font-mono">
-                          {entry.roleCode}
-                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 uppercase font-mono">{entry.roleCode}</span>
                         <span className="text-[10px] text-slate-500">({entry.deptName})</span>
                       </div>
                       <span className="text-[10px] text-slate-500 block mt-0.5">{entry.email}</span>
@@ -2436,30 +2439,14 @@ export default function App() {
 
                   <div className="flex items-center gap-2.5 flex-wrap">
                     {/* Flags */}
-                    {entry.flags.late && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase">
-                        Telat
-                      </span>
-                    )}
-                    {entry.flags.auto && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase">
-                        Auto-checkout
-                      </span>
-                    )}
-                    {entry.flags.offline && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 uppercase">
-                        Offline
-                      </span>
-                    )}
-                    {entry.flags.noEvidence && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase">
-                        Tanpa Bukti
-                      </span>
-                    )}
+                    {entry.flags.late && <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase">Telat</span>}
+                    {entry.flags.auto && <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase">Auto-checkout</span>}
+                    {entry.flags.offline && <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 uppercase">Offline</span>}
+                    {entry.flags.noEvidence && <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase">Tanpa Bukti</span>}
 
                     {/* Status Pill */}
                     <span className="text-xs font-bold px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-sky-600 uppercase font-mono">
-                      {entry.workStatus === 'WFO' ? '🏢 WFO' : entry.workStatus === 'WFH' ? '🏠 WFH' : '📍 ONSITE'}
+                      {entry.workStatus === "WFO" ? "🏢 WFO" : entry.workStatus === "WFH" ? "🏠 WFH" : "📍 ONSITE"}
                     </span>
                   </div>
                 </div>
@@ -2468,48 +2455,26 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Checkin Pagi */}
                   <div className="flex gap-4 items-center bg-white p-3.5 border border-slate-200 rounded-xl">
-                    <SelfieThumb
-                      attendanceId={entry.checkinId}
-                      hasSelfie={!!entry.selfieKey}
-                      isOwn={entry.userId === user?.id}
-                      token={token}
-                      alt="Selfie Check-in"
-                    />
+                    <SelfieThumb attendanceId={entry.checkinId} hasSelfie={!!entry.selfieKey} isOwn={entry.userId === user?.id} token={token} alt="Selfie Check-in" />
                     <div>
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Check-in Pagi</span>
-                      <span className="font-bold text-slate-900 text-xs block mt-0.5">
-                        {new Date(entry.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      {entry.dailyNote && (
-                        <p className="text-[10px] text-slate-500 mt-1 italic">"{entry.dailyNote}"</p>
-                      )}
+                      <span className="font-bold text-slate-900 text-xs block mt-0.5">{new Date(entry.checkinTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      {entry.dailyNote && <p className="text-[10px] text-slate-500 mt-1 italic">"{entry.dailyNote}"</p>}
                     </div>
                   </div>
 
                   {/* Checkout Sore */}
                   {entry.checkoutTime ? (
                     <div className="flex gap-4 items-center bg-white p-3.5 border border-slate-200 rounded-xl">
-                      <SelfieThumb
-                        attendanceId={entry.checkoutCheckinId}
-                        hasSelfie={!!entry.checkoutSelfieKey}
-                        isOwn={entry.userId === user?.id}
-                        token={token}
-                        alt="Selfie Check-out"
-                      />
+                      <SelfieThumb attendanceId={entry.checkoutCheckinId} hasSelfie={!!entry.checkoutSelfieKey} isOwn={entry.userId === user?.id} token={token} alt="Selfie Check-out" />
                       <div>
                         <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Check-out Sore</span>
-                        <span className="font-bold text-slate-900 text-xs block mt-0.5">
-                          {new Date(entry.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        {entry.checkoutDailyNote && (
-                          <p className="text-[10px] text-slate-500 mt-1 italic">"{entry.checkoutDailyNote}"</p>
-                        )}
+                        <span className="font-bold text-slate-900 text-xs block mt-0.5">{new Date(entry.checkoutTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                        {entry.checkoutDailyNote && <p className="text-[10px] text-slate-500 mt-1 italic">"{entry.checkoutDailyNote}"</p>}
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center border border-dashed border-slate-200 p-3.5 rounded-xl text-xs text-slate-500 italic">
-                      Belum Check-out Sore
-                    </div>
+                    <div className="flex items-center justify-center border border-dashed border-slate-200 p-3.5 rounded-xl text-xs text-slate-500 italic">Belum Check-out Sore</div>
                   )}
                 </div>
 
@@ -2522,30 +2487,22 @@ export default function App() {
                         <div className="min-w-0 flex-1 mr-4">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono text-[9px] font-bold text-slate-500">{item.code}</span>
-                            {item.isCarryOver && (
-                              <span className="text-[8px] bg-amber-500/15 text-amber-600 border border-amber-500/20 px-1 rounded uppercase font-bold">
-                                Carry-over
-                              </span>
-                            )}
+                            {item.isCarryOver && <span className="text-[8px] bg-amber-500/15 text-amber-600 border border-amber-500/20 px-1 rounded uppercase font-bold">Carry-over</span>}
                           </div>
                           <span className="font-semibold text-slate-700 mt-0.5 block truncate">{item.title}</span>
-                          {item.plannedNote && (
-                            <span className="text-[10px] text-slate-500 italic block mt-0.5">Target pagi: {item.plannedNote}</span>
-                          )}
+                          {item.plannedNote && <span className="text-[10px] text-slate-500 italic block mt-0.5">Target pagi: {item.plannedNote}</span>}
                         </div>
 
                         <div className="flex items-center gap-4 shrink-0 text-right font-bold text-[11px]">
                           <div>
                             <span className="text-slate-500 block text-[9px] uppercase font-bold">Progres</span>
                             <span className="text-slate-900 font-mono">
-                              {item.percentBefore}% {item.percentAfter !== null && item.percentAfter !== undefined ? `→ ${item.percentAfter}%` : ''}
+                              {item.percentBefore}% {item.percentAfter !== null && item.percentAfter !== undefined ? `→ ${item.percentAfter}%` : ""}
                             </span>
                           </div>
                           <div>
                             <span className="text-slate-500 block text-[9px] uppercase font-bold">Status</span>
-                            <span className="text-sky-600 font-mono uppercase">
-                              {(item.statusAfter || item.statusBefore || '').replace(/_/g, ' ')}
-                            </span>
+                            <span className="text-sky-600 font-mono uppercase">{(item.statusAfter || item.statusBefore || "").replace(/_/g, " ")}</span>
                           </div>
                         </div>
                       </div>
@@ -2560,29 +2517,29 @@ export default function App() {
                       <AlertTriangle className="h-4 w-4 shrink-0" />
                       <span>Blocker Aktif (Kendala Terbuka)</span>
                     </span>
-                    
+
                     <div className="space-y-3 divide-y divide-red-900/30 text-xs">
                       {entry.blockers.map((b: any) => {
                         const isReporter = b.reportedBy === user.id;
                         const isMentioned = b.mentionedUserIds.includes(user.id);
                         const isManager = b.reporterManagerId === user.id;
-                        const isSuperAdmin = user.roles.includes('SUPER_ADMIN');
+                        const isSuperAdmin = user.roles.includes("SUPER_ADMIN");
                         const canResolve = isReporter || isMentioned || isManager || isSuperAdmin;
 
                         return (
                           <div key={b.id} className="pt-3 first:pt-0 flex justify-between items-start gap-4">
                             <div className="space-y-1">
-                              <div className="font-semibold text-slate-900">Target Task: <span className="font-mono text-red-600">{b.taskCode}</span> - {b.taskTitle}</div>
+                              <div className="font-semibold text-slate-900">
+                                Target Task: <span className="font-mono text-red-600">{b.taskCode}</span> - {b.taskTitle}
+                              </div>
                               <p className="text-slate-600 italic">"{b.description}"</p>
-                              <div className="text-[10px] text-slate-500">Dilaporkan oleh: <span className="text-slate-500">{b.reporterName}</span></div>
+                              <div className="text-[10px] text-slate-500">
+                                Dilaporkan oleh: <span className="text-slate-500">{b.reporterName}</span>
+                              </div>
                             </div>
 
                             {canResolve && (
-                              <button
-                                type="button"
-                                onClick={() => handleResolveBlocker(b.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-red-800 shrink-0"
-                              >
+                              <button type="button" onClick={() => handleResolveBlocker(b.id)} className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-red-800 shrink-0">
                                 Selesaikan
                               </button>
                             )}
@@ -2607,20 +2564,15 @@ export default function App() {
         <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900">Manajemen Cuti & Izin</h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Ajukan permohonan cuti, izin, atau sakit, dan proses persetujuan bawahan langsung.
-            </p>
+            <p className="text-xs text-slate-500 mt-1">Ajukan permohonan cuti, izin, atau sakit, dan proses persetujuan bawahan langsung.</p>
           </div>
-          
+
           <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center gap-4 text-xs shrink-0">
             <div>
               <span className="text-[10px] text-slate-500 block uppercase font-bold">Jatah Cuti Tersisa</span>
               <span className="text-lg font-bold text-sky-600 mt-0.5 block">{user?.leaveBalance ?? 0} Hari</span>
             </div>
-            <button
-              onClick={() => setLeaveFormOpen(true)}
-              className="bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs px-4 py-2.5 rounded-lg flex items-center gap-1.5"
-            >
+            <button onClick={() => setLeaveFormOpen(true)} className="bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs px-4 py-2.5 rounded-lg flex items-center gap-1.5">
               <PlusCircle className="h-4 w-4" />
               Ajukan Cuti/Izin
             </button>
@@ -2630,30 +2582,22 @@ export default function App() {
         {/* Sub-tab navigation */}
         <div className="flex border-b border-slate-200 gap-6 shrink-0 pb-1">
           <button
-            onClick={() => setLeaveSubTab('my')}
-            className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-              leaveSubTab === 'my' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+            onClick={() => setLeaveSubTab("my")}
+            className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${leaveSubTab === "my" ? "border-sky-500 text-sky-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
           >
             Pengajuan Saya ({leaveRequests.length})
           </button>
           <button
-            onClick={() => setLeaveSubTab('approvals')}
-            className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all flex items-center gap-1.5 ${
-              leaveSubTab === 'approvals' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+            onClick={() => setLeaveSubTab("approvals")}
+            className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all flex items-center gap-1.5 ${leaveSubTab === "approvals" ? "border-sky-500 text-sky-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
           >
             <span>Kotak Masuk Persetujuan</span>
-            {approvalsInbox.length > 0 && (
-              <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">
-                {approvalsInbox.length}
-              </span>
-            )}
+            {approvalsInbox.length > 0 && <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">{approvalsInbox.length}</span>}
           </button>
         </div>
 
         {/* View Router */}
-        {leaveSubTab === 'my' ? (
+        {leaveSubTab === "my" ? (
           /* MY LEAVE REQUESTS LIST */
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
             <table className="w-full text-left border-collapse text-xs">
@@ -2673,43 +2617,45 @@ export default function App() {
                     </td>
                   </tr>
                 ) : (
-                  leaveRequests.map(r => (
+                  leaveRequests.map((r) => (
                     <tr key={r.id} className="hover:bg-slate-50/30">
                       <td className="px-6 py-4">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
-                          r.type === 'SAKIT' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
-                          r.type === 'CUTI' ? 'bg-sky-500/10 text-sky-600 border-sky-500/20' :
-                          'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                        }`}>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
+                            r.type === "SAKIT" ? "bg-red-500/10 text-red-600 border-red-500/20" : r.type === "CUTI" ? "bg-sky-500/10 text-sky-600 border-sky-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                          }`}
+                        >
                           {r.type}
                         </span>
                         <div className="font-semibold text-slate-900 mt-1.5">{r.reason}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div>{new Date(r.date_from).toLocaleDateString()} s/d {new Date(r.date_to).toLocaleDateString()}</div>
+                        <div>
+                          {new Date(r.date_from).toLocaleDateString()} s/d {new Date(r.date_to).toLocaleDateString()}
+                        </div>
                         <div className="text-[10px] text-slate-500 mt-0.5">
                           {Math.round(parseFloat(r.hours) / 8)} Hari ({parseFloat(r.hours)} Jam)
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase ${
-                          r.status === 'APPROVED' || r.status === 'AUTO_APPROVED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                          r.status === 'REJECTED' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
-                          r.status === 'CANCELLED' ? 'bg-slate-100 text-slate-500 border-slate-300' :
-                          'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                        }`}>
-                          {r.status.replace(/_/g, ' ')}
+                        <span
+                          className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase ${
+                            r.status === "APPROVED" || r.status === "AUTO_APPROVED"
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : r.status === "REJECTED"
+                                ? "bg-red-500/10 text-red-600 border-red-500/20"
+                                : r.status === "CANCELLED"
+                                  ? "bg-slate-100 text-slate-500 border-slate-300"
+                                  : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                          }`}
+                        >
+                          {r.status.replace(/_/g, " ")}
                         </span>
-                        {r.decision_note && (
-                          <div className="text-[10px] text-slate-500 mt-1 italic">Note: "{r.decision_note}"</div>
-                        )}
+                        {r.decision_note && <div className="text-[10px] text-slate-500 mt-1 italic">Note: "{r.decision_note}"</div>}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {r.status !== 'CANCELLED' && r.status !== 'REJECTED' && (
-                          <button
-                            onClick={() => handleCancelLeave(r.id)}
-                            className="bg-slate-100 hover:bg-slate-200 text-red-600 hover:text-red-600 font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-slate-300"
-                          >
+                        {r.status !== "CANCELLED" && r.status !== "REJECTED" && (
+                          <button onClick={() => handleCancelLeave(r.id)} className="bg-slate-100 hover:bg-slate-200 text-red-600 hover:text-red-600 font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-slate-300">
                             Batalkan
                           </button>
                         )}
@@ -2741,7 +2687,7 @@ export default function App() {
                     </td>
                   </tr>
                 ) : (
-                  approvalsInbox.map(r => {
+                  approvalsInbox.map((r) => {
                     const days = Math.ceil((new Date(r.date_to).getTime() - new Date(r.date_from).getTime()) / (1000 * 60 * 60 * 24)) + 1;
                     return (
                       <tr key={r.id} className="hover:bg-slate-50/30">
@@ -2751,27 +2697,24 @@ export default function App() {
                           <div className="text-[10px] text-sky-600 mt-1 font-bold">Saldo: {r.requester?.leave_balance} Hari</div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
-                            r.type === 'SAKIT' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
-                            r.type === 'CUTI' ? 'bg-sky-500/10 text-sky-600 border-sky-500/20' :
-                            'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                          }`}>
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
+                              r.type === "SAKIT" ? "bg-red-500/10 text-red-600 border-red-500/20" : r.type === "CUTI" ? "bg-sky-500/10 text-sky-600 border-sky-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                            }`}
+                          >
                             {r.type}
                           </span>
                           <div className="font-semibold text-slate-900 mt-1.5">{r.reason}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div>{new Date(r.date_from).toLocaleDateString()} s/d {new Date(r.date_to).toLocaleDateString()}</div>
+                          <div>
+                            {new Date(r.date_from).toLocaleDateString()} s/d {new Date(r.date_to).toLocaleDateString()}
+                          </div>
                           <div className="text-[10px] text-slate-500 mt-0.5">{days} Hari</div>
                         </td>
                         <td className="px-6 py-4">
                           {r.attachment_key ? (
-                            <a
-                              href={`http://localhost:3000/api/v1/leaves/attachments/${r.attachment_key}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-sky-600 hover:underline font-bold text-[11px]"
-                            >
+                            <a href={`http://localhost:3000/api/v1/leaves/attachments/${r.attachment_key}`} target="_blank" rel="noreferrer" className="text-sky-600 hover:underline font-bold text-[11px]">
                               Lihat Lampiran
                             </a>
                           ) : (
@@ -2780,16 +2723,10 @@ export default function App() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-2 shrink-0">
-                            <button
-                              onClick={() => handleDecideLeave(r.id, 'APPROVED')}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-emerald-800"
-                            >
+                            <button onClick={() => handleDecideLeave(r.id, "APPROVED")} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-emerald-800">
                               Setujui
                             </button>
-                            <button
-                              onClick={() => handleDecideLeave(r.id, 'REJECTED')}
-                              className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-red-800"
-                            >
+                            <button onClick={() => handleDecideLeave(r.id, "REJECTED")} className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-red-800">
                               Tolak
                             </button>
                           </div>
@@ -2809,7 +2746,9 @@ export default function App() {
             <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
               <div className="p-6 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900">Ajukan Permohonan Cuti/Izin/Sakit</h3>
-                <button onClick={() => setLeaveFormOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+                <button onClick={() => setLeaveFormOpen(false)} className="text-slate-500 hover:text-slate-900">
+                  <X className="h-5 w-5" />
+                </button>
               </div>
 
               <form onSubmit={handleApplyLeave}>
@@ -2819,7 +2758,7 @@ export default function App() {
                     <select
                       className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                       value={leaveForm.type}
-                      onChange={e => setLeaveForm({ ...leaveForm, type: e.target.value })}
+                      onChange={(e) => setLeaveForm({ ...leaveForm, type: e.target.value })}
                     >
                       <option value="CUTI">CUTI (Mengurangi Saldo)</option>
                       <option value="IZIN">IZIN (Keperluan Mendesak)</option>
@@ -2831,35 +2770,35 @@ export default function App() {
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
                       <input
-                        type="date" required
+                        type="date"
+                        required
                         className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={leaveForm.dateFromStr}
-                        onChange={e => setLeaveForm({ ...leaveForm, dateFromStr: e.target.value })}
+                        onChange={(e) => setLeaveForm({ ...leaveForm, dateFromStr: e.target.value })}
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Selesai</label>
                       <input
-                        type="date" required
+                        type="date"
+                        required
                         className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={leaveForm.dateToStr}
-                        onChange={e => setLeaveForm({ ...leaveForm, dateToStr: e.target.value })}
+                        onChange={(e) => setLeaveForm({ ...leaveForm, dateToStr: e.target.value })}
                       />
                     </div>
                   </div>
 
                   {/* Attachment input (Mandatory for SAKIT) */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Lampiran Surat Keterangan Dokter {leaveForm.type === 'SAKIT' && <span className="text-red-600 font-bold">*</span>}
-                    </label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lampiran Surat Keterangan Dokter {leaveForm.type === "SAKIT" && <span className="text-red-600 font-bold">*</span>}</label>
                     <input
                       type="file"
                       ref={leaveAttachmentInputRef}
-                      required={leaveForm.type === 'SAKIT'}
+                      required={leaveForm.type === "SAKIT"}
                       accept=".pdf,.png,.jpg,.jpeg"
                       className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 focus:outline-none"
-                      onChange={e => {
+                      onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         setLeaveAttachment(file);
                       }}
@@ -2870,23 +2809,23 @@ export default function App() {
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Alasan Pengajuan</label>
                     <textarea
-                      required rows={2.5}
+                      required
+                      rows={2.5}
                       className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none placeholder-slate-750"
                       placeholder="Tuliskan keterangan detail alasan cuti/izin..."
                       value={leaveForm.reason}
-                      onChange={e => setLeaveForm({ ...leaveForm, reason: e.target.value })}
+                      onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
                     />
                   </div>
                 </div>
 
                 <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-                  <button
-                    type="submit" disabled={submittingLeave}
-                    className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5"
-                  >
-                    {submittingLeave ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Kirim Pengajuan'}
+                  <button type="submit" disabled={submittingLeave} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
+                    {submittingLeave ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Kirim Pengajuan"}
                   </button>
-                  <button type="button" onClick={() => setLeaveFormOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+                  <button type="button" onClick={() => setLeaveFormOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+                    Batal
+                  </button>
                 </div>
               </form>
             </div>
@@ -2897,28 +2836,26 @@ export default function App() {
   };
 
   const renderDashboardView = () => {
-    const isManager = user?.roles.includes('MANAGER') || user?.roles.includes('SUPER_ADMIN');
-    const isCTOorPM = user?.roles.includes('CTO') || user?.roles.includes('PM_ADMIN') || user?.roles.includes('SUPER_ADMIN');
-    
+    const isManager = user?.roles.includes("MANAGER") || user?.roles.includes("SUPER_ADMIN");
+    const isCTOorPM = user?.roles.includes("CTO") || user?.roles.includes("PM_ADMIN") || user?.roles.includes("SUPER_ADMIN");
+
     // Automatically set fallback dashboard view tab if permissions are skewed
-    const currentSubTab = isCTOorPM && !isManager ? 'program' : dashboardSubTab;
+    const currentSubTab = isCTOorPM && !isManager ? "program" : dashboardSubTab;
 
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900">Dashboard Analitik</h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Pantau kinerja proyek, anomali absensi, dan progres sprint tim.
-            </p>
+            <p className="text-xs text-slate-500 mt-1">Pantau kinerja proyek, anomali absensi, dan progres sprint tim.</p>
           </div>
 
           {/* Payroll Export trigger for HR and SuperAdmin roles */}
-          {(user?.roles.includes('SUPER_ADMIN') || user?.roles.includes('HR')) && (
+          {(user?.roles.includes("SUPER_ADMIN") || user?.roles.includes("HR")) && (
             <button
               onClick={() => {
-                setExportDateFrom(new Date().toISOString().split('T')[0]);
-                setExportDateTo(new Date().toISOString().split('T')[0]);
+                setExportDateFrom(new Date().toISOString().split("T")[0]);
+                setExportDateTo(new Date().toISOString().split("T")[0]);
                 setExportModalOpen(true);
               }}
               className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg flex items-center gap-1.5 shrink-0"
@@ -2933,18 +2870,14 @@ export default function App() {
         {isManager && isCTOorPM && (
           <div className="flex border-b border-slate-200 gap-6 shrink-0 pb-1">
             <button
-              onClick={() => setDashboardSubTab('team')}
-              className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                dashboardSubTab === 'team' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+              onClick={() => setDashboardSubTab("team")}
+              className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${dashboardSubTab === "team" ? "border-sky-500 text-sky-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
             >
               Dashboard Kehadiran Tim
             </button>
             <button
-              onClick={() => setDashboardSubTab('program')}
-              className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                dashboardSubTab === 'program' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+              onClick={() => setDashboardSubTab("program")}
+              className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${dashboardSubTab === "program" ? "border-sky-500 text-sky-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
             >
               Dashboard Program & Sprint (CTO)
             </button>
@@ -2957,64 +2890,50 @@ export default function App() {
           </div>
         ) : !dashboardData ? (
           <div className="text-center py-20 text-slate-500 italic">Gagal memuat data dashboard.</div>
-        ) : currentSubTab === 'program' && !dashboardData.metrics ? (
+        ) : currentSubTab === "program" && !dashboardData.metrics ? (
           /* Data shape belongs to the team endpoint but the program layout is
              active (in-flight sub-tab switch) — show loader instead of crashing. */
           <div className="flex justify-center items-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
           </div>
-        ) : currentSubTab === 'team' && !dashboardData.attendanceList ? (
+        ) : currentSubTab === "team" && !dashboardData.attendanceList ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
           </div>
-        ) : currentSubTab === 'team' ? (
+        ) : currentSubTab === "team" ? (
           /* TEAM ATTENDANCE DASHBOARD */
           <div className="space-y-6">
             {/* Filters */}
             <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
               <div className="flex flex-wrap gap-3 items-center">
                 <Filter className="h-4 w-4 text-slate-500" />
-                
-                <select
-                  className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
-                  value={dashboardTeamFilter}
-                  onChange={e => setDashboardTeamFilter(e.target.value)}
-                >
+
+                <select className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none" value={dashboardTeamFilter} onChange={(e) => setDashboardTeamFilter(e.target.value)}>
                   <option value="">Tim Saya (Default)</option>
                   <optgroup label="Departemen">
-                    {departmentsList.map(d => (
-                      <option key={d.id} value={`DEPT:${d.id}`}>{d.name}</option>
+                    {departmentsList.map((d) => (
+                      <option key={d.id} value={`DEPT:${d.id}`}>
+                        {d.name}
+                      </option>
                     ))}
                   </optgroup>
                   <optgroup label="Proyek">
-                    {projectsList.map(p => (
-                      <option key={p.id} value={`PROJ:${p.id}`}>{p.name}</option>
+                    {projectsList.map((p) => (
+                      <option key={p.id} value={`PROJ:${p.id}`}>
+                        {p.name}
+                      </option>
                     ))}
                   </optgroup>
                 </select>
 
                 <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono"
-                    value={dashboardDateFrom}
-                    onChange={e => setDashboardDateFrom(e.target.value)}
-                  />
+                  <input type="date" className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono" value={dashboardDateFrom} onChange={(e) => setDashboardDateFrom(e.target.value)} />
                   <span className="text-slate-500 font-bold">s/d</span>
-                  <input
-                    type="date"
-                    className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono"
-                    value={dashboardDateTo}
-                    onChange={e => setDashboardDateTo(e.target.value)}
-                  />
+                  <input type="date" className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono" value={dashboardDateTo} onChange={(e) => setDashboardDateTo(e.target.value)} />
                 </div>
               </div>
 
-              {dashboardData.anomaliesCount > 0 && (
-                <span className="text-[10px] px-2.5 py-1 rounded bg-red-500/10 text-red-600 border border-red-500/20 font-bold uppercase">
-                  ⚠️ {dashboardData.anomaliesCount} Anomali Terdeteksi
-                </span>
-              )}
+              {dashboardData.anomaliesCount > 0 && <span className="text-[10px] px-2.5 py-1 rounded bg-red-500/10 text-red-600 border border-red-500/20 font-bold uppercase">⚠️ {dashboardData.anomaliesCount} Anomali Terdeteksi</span>}
             </div>
 
             {/* Attendance list Grid */}
@@ -3044,52 +2963,26 @@ export default function App() {
                         <tr key={idx} className="hover:bg-slate-50/30">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-slate-900">{a.user.fullName}</div>
-                            <div className="text-[10px] text-slate-500">{a.user.roleCode} ({a.user.deptName})</div>
+                            <div className="text-[10px] text-slate-500">
+                              {a.user.roleCode} ({a.user.deptName})
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <div>{new Date(a.date).toLocaleDateString()}</div>
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-50 text-sky-600 border border-slate-200 uppercase font-mono mt-1 inline-block">
-                              {a.workStatus}
-                            </span>
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-50 text-sky-600 border border-slate-200 uppercase font-mono mt-1 inline-block">{a.workStatus}</span>
                           </td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-600">
-                            {a.checkinTime ? new Date(a.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
-                          </td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-600">
-                            {a.checkoutTime ? new Date(a.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
-                          </td>
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-600">{a.checkinTime ? new Date(a.checkinTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}</td>
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-600">{a.checkoutTime ? new Date(a.checkoutTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}</td>
                           <td className="px-6 py-4 font-semibold text-slate-600">{a.tasksCount} Tasks</td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex flex-wrap justify-end gap-1.5">
-                              {a.flags.late && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase font-mono">
-                                  Telat
-                                </span>
-                              )}
-                              {a.flags.auto && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase font-mono">
-                                  Auto
-                                </span>
-                              )}
-                              {a.flags.offline && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 uppercase font-mono">
-                                  Offline
-                                </span>
-                              )}
-                              {!a.flags.geofence_ok && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase font-mono">
-                                  GPS Gagal
-                                </span>
-                              )}
-                              {a.flags.noEvidence && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase font-mono">
-                                  Evidence Hilang
-                                </span>
-                              )}
+                              {a.flags.late && <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase font-mono">Telat</span>}
+                              {a.flags.auto && <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase font-mono">Auto</span>}
+                              {a.flags.offline && <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 uppercase font-mono">Offline</span>}
+                              {!a.flags.geofence_ok && <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase font-mono">GPS Gagal</span>}
+                              {a.flags.noEvidence && <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase font-mono">Evidence Hilang</span>}
                               {!a.flags.late && !a.flags.auto && !a.flags.offline && a.flags.geofence_ok && !a.flags.noEvidence && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase font-mono">
-                                  Patuh
-                                </span>
+                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase font-mono">Patuh</span>
                               )}
                             </div>
                           </td>
@@ -3131,11 +3024,7 @@ export default function App() {
                             <td className="px-6 py-4 italic text-slate-600">"{b.description}"</td>
                             <td className="px-6 py-4 font-semibold text-slate-900">{b.reporterName}</td>
                             <td className="px-6 py-4">
-                              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                b.daysOpen >= 3 ? 'bg-red-500/20 text-red-600 border border-red-500/30 animate-pulse' : 'bg-slate-100 text-slate-600'
-                              }`}>
-                                {b.daysOpen} Hari
-                              </span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${b.daysOpen >= 3 ? "bg-red-500/20 text-red-600 border border-red-500/30 animate-pulse" : "bg-slate-100 text-slate-600"}`}>{b.daysOpen} Hari</span>
                             </td>
                           </tr>
                         ))
@@ -3160,7 +3049,7 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Blocker Aktif Terbuka</span>
                 <div className="flex justify-between items-center">
@@ -3179,9 +3068,7 @@ export default function App() {
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Health Index Standup</span>
                 <div className="flex justify-between items-center">
                   <span className="text-2xl font-bold text-emerald-600 font-mono">
-                    {dashboardData.metrics.totalHadir > 0 
-                      ? Math.round(((dashboardData.metrics.totalHadir - dashboardData.metrics.anomaliesCount) / dashboardData.metrics.totalHadir) * 100)
-                      : 100}%
+                    {dashboardData.metrics.totalHadir > 0 ? Math.round(((dashboardData.metrics.totalHadir - dashboardData.metrics.anomaliesCount) / dashboardData.metrics.totalHadir) * 100) : 100}%
                   </span>
                 </div>
               </div>
@@ -3198,30 +3085,29 @@ export default function App() {
                     dashboardData.sprintMetrics.map((s: any) => (
                       <div key={s.id} className="space-y-1.5">
                         <div className="flex justify-between text-xs font-semibold text-slate-600">
-                          <span>{s.projectName} - <span className="font-bold text-slate-900">{s.name}</span></span>
+                          <span>
+                            {s.projectName} - <span className="font-bold text-slate-900">{s.name}</span>
+                          </span>
                           <span className="font-mono">{s.progress}%</span>
                         </div>
                         {/* Progress Bar with RAG Colors */}
                         <div className="w-full h-3 bg-slate-50 rounded-full border border-slate-200 overflow-hidden flex">
-                          <div 
+                          <div
                             className={`h-full transition-all rounded-full ${
-                              s.rag === 'GREEN' ? 'bg-emerald-500 shadow shadow-emerald-500/20' :
-                              s.rag === 'YELLOW' ? 'bg-amber-500 shadow shadow-amber-500/20' :
-                              s.rag === 'RED' ? 'bg-red-500 shadow shadow-red-500/20' :
-                              'bg-black border border-red-500/60 shadow shadow-red-500/30' // BLACK RAG
+                              s.rag === "GREEN"
+                                ? "bg-emerald-500 shadow shadow-emerald-500/20"
+                                : s.rag === "YELLOW"
+                                  ? "bg-amber-500 shadow shadow-amber-500/20"
+                                  : s.rag === "RED"
+                                    ? "bg-red-500 shadow shadow-red-500/20"
+                                    : "bg-black border border-red-500/60 shadow shadow-red-500/30" // BLACK RAG
                             }`}
                             style={{ width: `${s.progress}%` }}
                           />
                         </div>
                         <div className="flex justify-between text-[9px] text-slate-500">
                           <span>Target: {new Date(s.endDate).toLocaleDateString()}</span>
-                          <span className={`font-bold ${
-                            s.rag === 'GREEN' ? 'text-emerald-600' :
-                            s.rag === 'YELLOW' ? 'text-amber-600' :
-                            s.rag === 'RED' ? 'text-red-600' : 'text-red-600 font-extrabold animate-pulse'
-                          }`}>
-                            {s.rag} STATUS
-                          </span>
+                          <span className={`font-bold ${s.rag === "GREEN" ? "text-emerald-600" : s.rag === "YELLOW" ? "text-amber-600" : s.rag === "RED" ? "text-red-600" : "text-red-600 font-extrabold animate-pulse"}`}>{s.rag} STATUS</span>
                         </div>
                       </div>
                     ))
@@ -3239,17 +3125,13 @@ export default function App() {
                     dashboardData.roleMetrics.map((r: any) => (
                       <div key={r.code} className="space-y-1.5">
                         <div className="flex justify-between text-xs font-semibold text-slate-600">
-                          <span>{r.name} ({r.code})</span>
+                          <span>
+                            {r.name} ({r.code})
+                          </span>
                           <span className="font-mono text-slate-900">{r.progress}%</span>
                         </div>
                         <div className="w-full h-2.5 bg-slate-50 rounded-full border border-slate-200 overflow-hidden">
-                          <div 
-                            className={`h-full transition-all rounded-full ${
-                              r.rag === 'GREEN' ? 'bg-emerald-500' :
-                              r.rag === 'YELLOW' ? 'bg-amber-500' : 'bg-red-500'
-                            }`}
-                            style={{ width: `${r.progress}%` }}
-                          />
+                          <div className={`h-full transition-all rounded-full ${r.rag === "GREEN" ? "bg-emerald-500" : r.rag === "YELLOW" ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${r.progress}%` }} />
                         </div>
                       </div>
                     ))
@@ -3264,9 +3146,7 @@ export default function App() {
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {dashboardData.statusDistribution.map((sd: any, idx: number) => (
                   <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">
-                      {sd.status.replace(/_/g, ' ')}
-                    </span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">{sd.status.replace(/_/g, " ")}</span>
                     <span className="text-xl font-bold text-slate-900 font-mono">{sd.count} Tasks</span>
                   </div>
                 ))}
@@ -3290,23 +3170,28 @@ export default function App() {
                   <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">Langkah 1: Tambah ke Layar Utama (Instal PWA)</span>
                   <div className="space-y-1 text-slate-600">
                     <p className="font-semibold text-slate-900">📱 Untuk Perangkat iOS (iPhone/Safari):</p>
-                    <p className="pl-4">Ketuk tombol <span className="font-bold text-slate-900">Bagikan (Share icon)</span> di bagian bawah Safari → Pilih <span className="font-bold text-slate-900">'Tambah ke Layar Utama' (Add to Home Screen)</span>.</p>
-                    
+                    <p className="pl-4">
+                      Ketuk tombol <span className="font-bold text-slate-900">Bagikan (Share icon)</span> di bagian bawah Safari → Pilih <span className="font-bold text-slate-900">'Tambah ke Layar Utama' (Add to Home Screen)</span>.
+                    </p>
+
                     <p className="font-semibold text-slate-900 mt-3">🤖 Untuk Perangkat Android (Chrome):</p>
-                    <p className="pl-4">Ketuk tombol menu <span className="font-bold text-slate-900">tiga titik</span> di pojok kanan atas → Pilih <span className="font-bold text-slate-900">'Instal Aplikasi'</span> atau <span className="font-bold text-slate-900">'Tambahkan ke Layar Utama'</span>.</p>
+                    <p className="pl-4">
+                      Ketuk tombol menu <span className="font-bold text-slate-900">tiga titik</span> di pojok kanan atas → Pilih <span className="font-bold text-slate-900">'Instal Aplikasi'</span> atau{" "}
+                      <span className="font-bold text-slate-900">'Tambahkan ke Layar Utama'</span>.
+                    </p>
                   </div>
                 </div>
 
                 {/* 2. Permission Triggers */}
                 <div className="space-y-3">
                   <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">Langkah 2: Izin Perangkat</span>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
                       type="button"
                       onClick={async () => {
                         const perm = await Notification.requestPermission();
-                        alert(perm === 'granted' ? 'Izin notifikasi disetujui!' : 'Izin notifikasi ditolak.');
+                        alert(perm === "granted" ? "Izin notifikasi disetujui!" : "Izin notifikasi ditolak.");
                       }}
                       className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-50 rounded-xl text-center font-bold text-slate-700"
                     >
@@ -3318,10 +3203,10 @@ export default function App() {
                       onClick={async () => {
                         try {
                           const s = await navigator.mediaDevices.getUserMedia({ video: true });
-                          s.getTracks().forEach(track => track.stop());
-                          alert('Kamera terverifikasi aktif!');
+                          s.getTracks().forEach((track) => track.stop());
+                          alert("Kamera terverifikasi aktif!");
                         } catch (e) {
-                          alert('Gagal mengakses kamera. Silakan periksa izin browser.');
+                          alert("Gagal mengakses kamera. Silakan periksa izin browser.");
                         }
                       }}
                       className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-50 rounded-xl text-center font-bold text-slate-700"
@@ -3333,8 +3218,8 @@ export default function App() {
                       type="button"
                       onClick={() => {
                         navigator.geolocation.getCurrentPosition(
-                          () => alert('GPS terverifikasi aktif!'),
-                          () => alert('Gagal mengakses lokasi. Silakan aktifkan GPS perangkat.')
+                          () => alert("GPS terverifikasi aktif!"),
+                          () => alert("Gagal mengakses lokasi. Silakan aktifkan GPS perangkat."),
                         );
                       }}
                       className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-50 rounded-xl text-center font-bold text-slate-700"
@@ -3347,16 +3232,13 @@ export default function App() {
                 {/* 3. Privacy Policy Principle */}
                 <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-xl">
                   <span className="font-bold block mb-1">🔒 Prinsip Komitmen Privasi</span>
-                  Kamera dan GPS hanya diakses saat Anda mengonfirmasi Check-in atau Check-out absensi mandiri. Koordinat GPS Anda dianalisis secara lokal di browser dan backend untuk keperluan validasi WFO/ONSITE dan <span className="font-semibold text-slate-900">tidak pernah dilacak di latar belakang secara diam-diam.</span>
+                  Kamera dan GPS hanya diakses saat Anda mengonfirmasi Check-in atau Check-out absensi mandiri. Koordinat GPS Anda dianalisis secara lokal di browser dan backend untuk keperluan validasi WFO/ONSITE dan{" "}
+                  <span className="font-semibold text-slate-900">tidak pernah dilacak di latar belakang secara diam-diam.</span>
                 </div>
               </div>
 
               <div className="p-6 border-t border-slate-200 flex justify-end bg-white/60 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleOnboardingComplete}
-                  className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-6 py-2.5 rounded-lg flex items-center gap-1.5"
-                >
+                <button type="button" onClick={handleOnboardingComplete} className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-6 py-2.5 rounded-lg flex items-center gap-1.5">
                   Saya Mengerti & Selesai
                 </button>
               </div>
@@ -3370,7 +3252,9 @@ export default function App() {
             <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
               <div className="p-6 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900">Ekspor Laporan Absensi (Payroll)</h3>
-                <button onClick={() => setExportModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+                <button onClick={() => setExportModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+                  <X className="h-5 w-5" />
+                </button>
               </div>
 
               <form onSubmit={handleTriggerExport}>
@@ -3379,35 +3263,34 @@ export default function App() {
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
                       <input
-                        type="date" required
+                        type="date"
+                        required
                         className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={exportDateFrom}
-                        onChange={e => setExportDateFrom(e.target.value)}
+                        onChange={(e) => setExportDateFrom(e.target.value)}
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Selesai</label>
                       <input
-                        type="date" required
+                        type="date"
+                        required
                         className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={exportDateTo}
-                        onChange={e => setExportDateTo(e.target.value)}
+                        onChange={(e) => setExportDateTo(e.target.value)}
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-500">
-                    Proses ini akan mengekstrak detail kehadiran, durasi kerja, keterlambatan, auto-checkout, dan cuti untuk seluruh karyawan.
-                  </p>
+                  <p className="text-[10px] text-slate-500">Proses ini akan mengekstrak detail kehadiran, durasi kerja, keterlambatan, auto-checkout, dan cuti untuk seluruh karyawan.</p>
                 </div>
 
                 <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-                  <button
-                    type="submit" disabled={submittingExport}
-                    className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5"
-                  >
-                    {submittingExport ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Ekspor Laporan'}
+                  <button type="submit" disabled={submittingExport} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
+                    {submittingExport ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Ekspor Laporan"}
                   </button>
-                  <button type="button" onClick={() => setExportModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+                  <button type="button" onClick={() => setExportModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+                    Batal
+                  </button>
                 </div>
               </form>
             </div>
@@ -3419,7 +3302,7 @@ export default function App() {
 
   // 1. Checkin Form Render (Satu layar scrollable)
   const renderCheckinForm = (activeSprintTasks: any[], carryOverTasks: any[]) => {
-    const allTasks = [...carryOverTasks.map(t => ({ ...t, isCarryOver: true })), ...activeSprintTasks.map(t => ({ ...t, isCarryOver: false }))];
+    const allTasks = [...carryOverTasks.map((t) => ({ ...t, isCarryOver: true })), ...activeSprintTasks.map((t) => ({ ...t, isCarryOver: false }))];
 
     return (
       <form onSubmit={handleCheckinSubmit} className="max-w-xl mx-auto space-y-6 bg-white border border-slate-200 p-6 rounded-2xl">
@@ -3428,44 +3311,38 @@ export default function App() {
             <h2 className="text-lg font-bold text-slate-900">Check-in Kehadiran & Standup</h2>
             <p className="text-xs text-slate-500 mt-1">Mulai aktivitas kerja harian Anda.</p>
           </div>
-          <span className="text-[10px] font-bold bg-amber-500/15 text-amber-600 border border-amber-500/20 px-2.5 py-1 rounded-lg">
-            IN SESSION
-          </span>
+          <span className="text-[10px] font-bold bg-amber-500/15 text-amber-600 border border-amber-500/20 px-2.5 py-1 rounded-lg">IN SESSION</span>
         </div>
 
         {/* 1. Pill Select Work Status */}
         <div className="space-y-2">
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status Kerja</label>
           <div className="grid grid-cols-3 gap-3">
-            {['WFO', 'WFH', 'ONSITE'].map((ws) => (
+            {["WFO", "WFH", "ONSITE"].map((ws) => (
               <button
-                key={ws} type="button"
+                key={ws}
+                type="button"
                 onClick={() => setCheckinWorkStatus(ws)}
                 className={`py-3 rounded-lg text-xs font-bold border transition-all ${
-                  checkinWorkStatus === ws 
-                    ? 'bg-sky-500 border-sky-500 text-white shadow-sm shadow-sky-500/10' 
-                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-900'
+                  checkinWorkStatus === ws ? "bg-sky-500 border-sky-500 text-white shadow-sm shadow-sky-500/10" : "bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-900"
                 }`}
               >
-                {ws === 'WFO' ? '🏢 WFO' : ws === 'WFH' ? '🏠 WFH' : '📍 ONSITE'}
+                {ws === "WFO" ? "🏢 WFO" : ws === "WFH" ? "🏠 WFH" : "📍 ONSITE"}
               </button>
             ))}
           </div>
         </div>
 
         {/* 1.1 Client Project Selection for ONSITE */}
-        {checkinWorkStatus === 'ONSITE' && (
+        {checkinWorkStatus === "ONSITE" && (
           <div className="space-y-2">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Project Klien ONSITE (Wajib)</label>
-            <select
-              required
-              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-900 focus:outline-none"
-              value={checkinClientProjectId}
-              onChange={e => setCheckinClientProjectId(e.target.value)}
-            >
+            <select required className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-900 focus:outline-none" value={checkinClientProjectId} onChange={(e) => setCheckinClientProjectId(e.target.value)}>
               <option value="">Pilih Project Klien</option>
-              {projectsList.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+              {projectsList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
@@ -3478,30 +3355,21 @@ export default function App() {
             {selfiePreview ? (
               <>
                 <img src={selfiePreview} alt="Selfie Preview" className="h-full w-full object-cover" />
-                <button
-                  type="button" onClick={startCamera}
-                  className="absolute bottom-3 right-3 bg-slate-900/40 hover:bg-slate-100 text-slate-900 rounded-lg p-2 text-xs font-bold border border-slate-200"
-                >
+                <button type="button" onClick={startCamera} className="absolute bottom-3 right-3 bg-slate-900/40 hover:bg-slate-100 text-slate-900 rounded-lg p-2 text-xs font-bold border border-slate-200">
                   Ulangi Foto
                 </button>
               </>
             ) : cameraActive ? (
               <>
                 <video ref={videoRef} className="h-full w-full object-cover scale-x-[-1]" playsInline muted />
-                <button
-                  type="button" onClick={capturePhoto}
-                  className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-sm shadow-sky-500/20"
-                >
+                <button type="button" onClick={capturePhoto} className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-sm shadow-sky-500/20">
                   <Camera className="h-6 w-6" />
                 </button>
               </>
             ) : (
               <div className="text-center space-y-3">
                 <Camera className="h-10 w-10 text-slate-500 mx-auto" />
-                <button
-                  type="button" onClick={startCamera}
-                  className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg"
-                >
+                <button type="button" onClick={startCamera} className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg">
                   Nyalakan Kamera
                 </button>
               </div>
@@ -3514,34 +3382,26 @@ export default function App() {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Daftar Rencana Tugas Hari Ini (Maks 5)</label>
-            <span className="text-[10px] text-slate-500 font-bold">
-              {Object.values(checkinSelectedTaskIds).filter(Boolean).length} Terpilih
-            </span>
+            <span className="text-[10px] text-slate-500 font-bold">{Object.values(checkinSelectedTaskIds).filter(Boolean).length} Terpilih</span>
           </div>
 
           {allTasks.length === 0 ? (
-            <p className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-slate-200">
-              Tidak ada tugas aktif di sprint ini untuk Anda.
-            </p>
+            <p className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-slate-200">Tidak ada tugas aktif di sprint ini untuk Anda.</p>
           ) : (
             <div className="space-y-2 max-h-52 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-white">
-              {allTasks.map(t => (
+              {allTasks.map((t) => (
                 <div key={t.id} className="p-2.5 rounded-lg bg-white border border-slate-200/60 hover:bg-slate-100/30 transition-all">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       className="mt-0.5 rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0"
                       checked={!!checkinSelectedTaskIds[t.id]}
-                      onChange={e => setCheckinSelectedTaskIds({ ...checkinSelectedTaskIds, [t.id]: e.target.checked })}
+                      onChange={(e) => setCheckinSelectedTaskIds({ ...checkinSelectedTaskIds, [t.id]: e.target.checked })}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[9px] font-mono font-bold text-slate-500">{t.code}</span>
-                        {t.isCarryOver && (
-                          <span className="text-[8px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase">
-                            Carry-over
-                          </span>
-                        )}
+                        {t.isCarryOver && <span className="text-[8px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase">Carry-over</span>}
                       </div>
                       <span className="text-xs text-slate-700 font-semibold block mt-0.5 truncate">{t.title}</span>
                     </div>
@@ -3553,8 +3413,8 @@ export default function App() {
                       type="text"
                       className="mt-2 w-full rounded border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-900 focus:outline-none placeholder-slate-650"
                       placeholder="Tambahkan catatan khusus tugas ini pagi ini (opsional)..."
-                      value={checkinTaskNotes[t.id] || ''}
-                      onChange={e => setCheckinTaskNotes({ ...checkinTaskNotes, [t.id]: e.target.value })}
+                      value={checkinTaskNotes[t.id] || ""}
+                      onChange={(e) => setCheckinTaskNotes({ ...checkinTaskNotes, [t.id]: e.target.value })}
                     />
                   )}
                 </div>
@@ -3566,12 +3426,7 @@ export default function App() {
         {/* 4. Blocker Input (Optional) */}
         <div className="space-y-3 p-4 bg-white border border-slate-200 rounded-xl">
           <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
-            <input
-              type="checkbox"
-              className="rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0"
-              checked={hasBlocker}
-              onChange={e => setHasBlocker(e.target.checked)}
-            />
+            <input type="checkbox" className="rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0" checked={hasBlocker} onChange={(e) => setHasBlocker(e.target.checked)} />
             <span>Apakah ada Blocker (Kendala)?</span>
           </label>
 
@@ -3579,15 +3434,12 @@ export default function App() {
             <div className="space-y-3 pt-2">
               <div>
                 <label className="block text-[9px] font-bold text-slate-500 uppercase">Task Terhambat</label>
-                <select
-                  required
-                  className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none"
-                  value={blockerTaskId}
-                  onChange={e => setBlockerTaskId(e.target.value)}
-                >
+                <select required className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none" value={blockerTaskId} onChange={(e) => setBlockerTaskId(e.target.value)}>
                   <option value="">Pilih Task Terhambat</option>
-                  {allTasks.map(t => (
-                    <option key={t.id} value={t.id}>{t.code} - {t.title}</option>
+                  {allTasks.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.code} - {t.title}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -3600,7 +3452,7 @@ export default function App() {
                   className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none placeholder-slate-400"
                   placeholder="Ceritakan blocker atau hambatan teknis..."
                   value={blockerDescription}
-                  onChange={e => setBlockerDescription(e.target.value)}
+                  onChange={(e) => setBlockerDescription(e.target.value)}
                 />
               </div>
 
@@ -3613,7 +3465,7 @@ export default function App() {
                   multiple
                   className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none min-h-[60px]"
                   value={blockerMentions}
-                  onChange={e => {
+                  onChange={(e) => {
                     const options = e.target.options;
                     const selected: string[] = [];
                     for (let i = 0; i < options.length; i++) {
@@ -3622,8 +3474,10 @@ export default function App() {
                     setBlockerMentions(selected);
                   }}
                 >
-                  {usersList.map(usr => (
-                    <option key={usr.id} value={usr.id}>{usr.full_name} ({usr.email})</option>
+                  {usersList.map((usr) => (
+                    <option key={usr.id} value={usr.id}>
+                      {usr.full_name} ({usr.email})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -3639,14 +3493,11 @@ export default function App() {
             className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none placeholder-slate-650"
             placeholder="Hari ini berencana fokus pada..."
             value={checkinDailyNote}
-            onChange={e => setCheckinDailyNote(e.target.value)}
+            onChange={(e) => setCheckinDailyNote(e.target.value)}
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-sm shadow-sky-500/10 active:scale-[0.99]"
-        >
+        <button type="submit" className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-sm shadow-sky-500/10 active:scale-[0.99]">
           Kirim Check-in (Pagi)
         </button>
       </form>
@@ -3664,18 +3515,14 @@ export default function App() {
             <h2 className="text-lg font-bold text-slate-900">Check-out Kehadiran & Standup</h2>
             <p className="text-xs text-slate-500 mt-1">Laporkan progres dan selesaikan hari kerja Anda.</p>
           </div>
-          <span className="text-[10px] font-bold bg-rose-500/15 text-rose-600 border border-rose-500/20 px-2.5 py-1 rounded-lg">
-            OUT SESSION
-          </span>
+          <span className="text-[10px] font-bold bg-rose-500/15 text-rose-600 border border-rose-500/20 px-2.5 py-1 rounded-lg">OUT SESSION</span>
         </div>
 
         {/* Check-in Info */}
         <div className="p-4 bg-white border border-slate-200 rounded-xl text-xs space-y-2">
           <div className="flex justify-between text-slate-500">
             <span>Check-in Pagi:</span>
-            <span className="font-semibold text-slate-900">
-              {new Date(todayCheckin.device_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
+            <span className="font-semibold text-slate-900">{new Date(todayCheckin.device_timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Status Kerja:</span>
@@ -3686,11 +3533,9 @@ export default function App() {
         {/* 1. Checklist of morning tasks with slider % complete */}
         <div className="space-y-3">
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Perbarui Progres Tugas Hari Ini</label>
-          
+
           {allTasks.length === 0 ? (
-            <p className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-slate-200">
-              Tidak ada rencana tugas pagi ini.
-            </p>
+            <p className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-slate-200">Tidak ada rencana tugas pagi ini.</p>
           ) : (
             <div className="space-y-4 max-h-72 overflow-y-auto border border-slate-200 rounded-xl p-3.5 bg-white divide-y divide-slate-200">
               {allTasks.map((t, idx) => {
@@ -3698,21 +3543,23 @@ export default function App() {
                 const currentStatus = checkoutTaskStatuses[t.id] || t.status;
 
                 return (
-                  <div key={t.id} className={`space-y-3 ${idx > 0 ? 'pt-4' : ''}`}>
+                  <div key={t.id} className={`space-y-3 ${idx > 0 ? "pt-4" : ""}`}>
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <span className="text-[9px] font-mono font-bold text-slate-500">{t.code}</span>
                         <span className="text-xs text-slate-700 font-semibold block mt-0.5">{t.title}</span>
                       </div>
-                      
+
                       {/* Status Dropdown */}
                       <select
                         className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[11px] text-slate-900 focus:outline-none"
                         value={currentStatus}
-                        onChange={e => setCheckoutTaskStatuses({ ...checkoutTaskStatuses, [t.id]: e.target.value })}
+                        onChange={(e) => setCheckoutTaskStatuses({ ...checkoutTaskStatuses, [t.id]: e.target.value })}
                       >
-                        {Object.values(TaskStatus).map(st => (
-                          <option key={st} value={st}>{st.replace(/_/g, ' ')}</option>
+                        {Object.values(TaskStatus).map((st) => (
+                          <option key={st} value={st}>
+                            {st.replace(/_/g, " ")}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -3724,10 +3571,13 @@ export default function App() {
                         <span className="text-sky-600">{currentPercent}%</span>
                       </div>
                       <input
-                        type="range" min="0" max="100" step="5"
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="5"
                         className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-sky-500"
                         value={currentPercent}
-                        onChange={e => setCheckoutTaskPercents({ ...checkoutTaskPercents, [t.id]: parseInt(e.target.value) })}
+                        onChange={(e) => setCheckoutTaskPercents({ ...checkoutTaskPercents, [t.id]: parseInt(e.target.value) })}
                       />
                     </div>
 
@@ -3738,8 +3588,8 @@ export default function App() {
                         type="url"
                         className="w-full rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-[11px] text-slate-900 placeholder-slate-700 focus:outline-none"
                         placeholder="https://github.com/indotek/hwms/pull/..."
-                        value={checkoutTaskEvidences[t.id] || ''}
-                        onChange={e => setCheckoutTaskEvidences({ ...checkoutTaskEvidences, [t.id]: e.target.value })}
+                        value={checkoutTaskEvidences[t.id] || ""}
+                        onChange={(e) => setCheckoutTaskEvidences({ ...checkoutTaskEvidences, [t.id]: e.target.value })}
                       />
                     </div>
                   </div>
@@ -3756,30 +3606,21 @@ export default function App() {
             {selfiePreview ? (
               <>
                 <img src={selfiePreview} alt="Selfie Preview" className="h-full w-full object-cover" />
-                <button
-                  type="button" onClick={startCamera}
-                  className="absolute bottom-3 right-3 bg-slate-900/40 hover:bg-slate-100 text-slate-900 rounded-lg p-2 text-xs font-bold border border-slate-200"
-                >
+                <button type="button" onClick={startCamera} className="absolute bottom-3 right-3 bg-slate-900/40 hover:bg-slate-100 text-slate-900 rounded-lg p-2 text-xs font-bold border border-slate-200">
                   Ulangi Foto
                 </button>
               </>
             ) : cameraActive ? (
               <>
                 <video ref={videoRef} className="h-full w-full object-cover scale-x-[-1]" playsInline muted />
-                <button
-                  type="button" onClick={capturePhoto}
-                  className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-sm shadow-sky-500/20"
-                >
+                <button type="button" onClick={capturePhoto} className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-sm shadow-sky-500/20">
                   <Camera className="h-6 w-6" />
                 </button>
               </>
             ) : (
               <div className="text-center space-y-3">
                 <Camera className="h-10 w-10 text-slate-500 mx-auto" />
-                <button
-                  type="button" onClick={startCamera}
-                  className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg"
-                >
+                <button type="button" onClick={startCamera} className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg">
                   Nyalakan Kamera
                 </button>
               </div>
@@ -3796,14 +3637,11 @@ export default function App() {
             className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none placeholder-slate-650"
             placeholder="Hari ini berhasil menyelesaikan..."
             value={checkoutDailyNote}
-            onChange={e => setCheckoutDailyNote(e.target.value)}
+            onChange={(e) => setCheckoutDailyNote(e.target.value)}
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-sm shadow-rose-600/10 active:scale-[0.99]"
-        >
+        <button type="submit" className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-sm shadow-rose-600/10 active:scale-[0.99]">
           Kirim Check-out (Sore)
         </button>
       </form>
@@ -3812,13 +3650,13 @@ export default function App() {
 
   const renderTaskView = () => {
     const ragColors: Record<string, string> = {
-      GREEN: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30',
-      YELLOW: 'bg-amber-500/20 text-amber-600 border-amber-500/30',
-      RED: 'bg-red-500/20 text-red-600 border-red-500/30',
-      BLACK: 'bg-white text-rose-600 border-rose-900 border-2'
+      GREEN: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30",
+      YELLOW: "bg-amber-500/20 text-amber-600 border-amber-500/30",
+      RED: "bg-red-500/20 text-red-600 border-red-500/30",
+      BLACK: "bg-white text-rose-600 border-rose-900 border-2",
     };
 
-    const activeAgg = sprintAggregations[myTasksFilterSprint] || { progressPct: 0, rag: 'GREEN' };
+    const activeAgg = sprintAggregations[myTasksFilterSprint] || { progressPct: 0, rag: "GREEN" };
 
     return (
       <div className="space-y-6">
@@ -3827,16 +3665,14 @@ export default function App() {
             <h1 className="text-xl font-bold text-slate-900">Daftar Tugas Saya & Tim</h1>
             <p className="text-xs text-slate-500 mt-1">Kelola progres sprint tugas Anda, lihat tugas rekan kerja sebagai referensi.</p>
           </div>
-          
+
           {myTasksFilterSprint && (
             <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-4 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500 block">Progress Sprint Terpilih:</span>
                 <span className="font-bold text-slate-900">{activeAgg.progressPct}%</span>
               </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${ragColors[activeAgg.rag]}`}>
-                {activeAgg.rag}
-              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${ragColors[activeAgg.rag]}`}>{activeAgg.rag}</span>
             </div>
           )}
         </div>
@@ -3844,37 +3680,31 @@ export default function App() {
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
           <div className="flex flex-wrap gap-3 items-center">
             <Filter className="h-4 w-4 text-slate-500" />
-            
-            <select
-              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
-              value={myTasksFilterSprint}
-              onChange={e => setMyTasksFilterSprint(e.target.value)}
-            >
+
+            <select className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none" value={myTasksFilterSprint} onChange={(e) => setMyTasksFilterSprint(e.target.value)}>
               <option value="">Pilih Sprint</option>
-              {sprintsList.map(s => (
-                <option key={s.id} value={s.id}>Sprint #{s.number} ({s.project?.name})</option>
+              {sprintsList.map((s) => (
+                <option key={s.id} value={s.id}>
+                  Sprint #{s.number} ({s.project?.name})
+                </option>
               ))}
             </select>
 
-            <select
-              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
-              value={myTasksFilterStatus}
-              onChange={e => setMyTasksFilterStatus(e.target.value)}
-            >
+            <select className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none" value={myTasksFilterStatus} onChange={(e) => setMyTasksFilterStatus(e.target.value)}>
               <option value="">Semua Status</option>
-              {['NOT_STARTED', 'IN_PROGRESS', 'DONE', 'BLOCKED'].map(st => (
-                <option key={st} value={st}>{st.replace(/_/g, ' ')}</option>
+              {["NOT_STARTED", "IN_PROGRESS", "DONE", "BLOCKED"].map((st) => (
+                <option key={st} value={st}>
+                  {st.replace(/_/g, " ")}
+                </option>
               ))}
             </select>
 
-            <select
-              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
-              value={myTasksFilterPriority}
-              onChange={e => setMyTasksFilterPriority(e.target.value)}
-            >
+            <select className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none" value={myTasksFilterPriority} onChange={(e) => setMyTasksFilterPriority(e.target.value)}>
               <option value="">Semua Prioritas</option>
-              {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
-                <option key={p} value={p}>{p}</option>
+              {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
           </div>
@@ -3898,7 +3728,7 @@ export default function App() {
                 const isMine = currentOwner?.id === user.id;
 
                 return (
-                  <tr key={tsk.id} className={`hover:bg-slate-50/30 ${isMine ? 'bg-sky-950/5 border-l-2 border-l-sky-500' : ''}`}>
+                  <tr key={tsk.id} className={`hover:bg-slate-50/30 ${isMine ? "bg-sky-950/5 border-l-2 border-l-sky-500" : ""}`}>
                     <td className="px-6 py-4">
                       <div className="font-mono text-[10px] font-bold text-slate-500">{tsk.code}</div>
                       <div className="font-bold text-slate-900 mt-0.5">{tsk.title}</div>
@@ -3917,11 +3747,17 @@ export default function App() {
                     <td className="px-6 py-4 text-slate-500">{tsk.workstream}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
-                          tsk.priority === 'CRITICAL' ? 'bg-red-600 text-white' :
-                          tsk.priority === 'HIGH' ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' :
-                          tsk.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : 'bg-slate-100 text-slate-500'
-                        }`}>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                            tsk.priority === "CRITICAL"
+                              ? "bg-red-600 text-white"
+                              : tsk.priority === "HIGH"
+                                ? "bg-rose-500/10 text-rose-600 border border-rose-500/20"
+                                : tsk.priority === "MEDIUM"
+                                  ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                                  : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
                           {tsk.priority}
                         </span>
                         <span className="text-[10px] text-slate-500 font-mono">w={tsk.weight}</span>
@@ -3933,33 +3769,34 @@ export default function App() {
                           <select
                             className="bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-[11px] text-slate-900 focus:outline-none"
                             value={tsk.status}
-                            onChange={e => handleUpdateTaskStatusAndProgress(tsk.id, e.target.value, tsk.percent_complete)}
+                            onChange={(e) => handleUpdateTaskStatusAndProgress(tsk.id, e.target.value, tsk.percent_complete)}
                           >
-                            {['NOT_STARTED', 'IN_PROGRESS', 'DONE', 'BLOCKED'].map(st => (
-                              <option key={st} value={st}>{st.replace(/_/g, ' ')}</option>
+                            {["NOT_STARTED", "IN_PROGRESS", "DONE", "BLOCKED"].map((st) => (
+                              <option key={st} value={st}>
+                                {st.replace(/_/g, " ")}
+                              </option>
                             ))}
                           </select>
                           <input
-                            type="number" min="0" max="100"
+                            type="number"
+                            min="0"
+                            max="100"
                             className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-center text-slate-900"
                             value={tsk.percent_complete}
-                            onChange={e => handleUpdateTaskStatusAndProgress(tsk.id, tsk.status, parseInt(e.target.value) || 0)}
+                            onChange={(e) => handleUpdateTaskStatusAndProgress(tsk.id, tsk.status, parseInt(e.target.value) || 0)}
                           />
                           <span className="text-[10px] text-slate-500">%</span>
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          <span className="font-semibold text-slate-500 uppercase text-[10px]">{tsk.status.replace(/_/g, ' ')}</span>
+                          <span className="font-semibold text-slate-500 uppercase text-[10px]">{tsk.status.replace(/_/g, " ")}</span>
                           <div className="text-[10px] text-slate-500 font-mono">{tsk.percent_complete}% Selesai</div>
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {(user.roles.includes('PM_ADMIN') || user.roles.includes('SUPER_ADMIN')) && (
-                        <button 
-                          onClick={() => openAssignModal(tsk)}
-                          className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded text-[10px] font-semibold border border-slate-300 px-2 py-1"
-                        >
+                      {(user.roles.includes("PM_ADMIN") || user.roles.includes("SUPER_ADMIN")) && (
+                        <button onClick={() => openAssignModal(tsk)} className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded text-[10px] font-semibold border border-slate-300 px-2 py-1">
                           Assign
                         </button>
                       )}
@@ -3980,14 +3817,14 @@ export default function App() {
 
   const renderAdminView = () => {
     const subtabs = [
-      { id: 'users', label: 'Pengguna' },
-      { id: 'locations', label: 'Lokasi' },
-      { id: 'holidays', label: 'Hari Libur' },
-      { id: 'projects', label: 'Proyek & Sprint' },
-      { id: 'tasks', label: 'Daftar Tugas (Task)' },
-      { id: 'departments', label: 'Departemen' },
-      { id: 'teams', label: 'Tim' },
-      { id: 'roles', label: 'Peran Fungsional' },
+      { id: "users", label: "Pengguna" },
+      { id: "locations", label: "Lokasi" },
+      { id: "holidays", label: "Hari Libur" },
+      { id: "projects", label: "Proyek & Sprint" },
+      { id: "tasks", label: "Daftar Tugas (Task)" },
+      { id: "departments", label: "Departemen" },
+      { id: "teams", label: "Tim" },
+      { id: "roles", label: "Peran Fungsional" },
     ];
 
     return (
@@ -3998,12 +3835,11 @@ export default function App() {
         </div>
 
         <div className="flex border-b border-slate-200 gap-6 shrink-0 overflow-x-auto pb-1">
-          {subtabs.map(tab => (
+          {subtabs.map((tab) => (
             <button
-              key={tab.id} onClick={() => setAdminSubTab(tab.id)}
-              className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all whitespace-nowrap ${
-                adminSubTab === tab.id ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+              key={tab.id}
+              onClick={() => setAdminSubTab(tab.id)}
+              className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all whitespace-nowrap ${adminSubTab === tab.id ? "border-sky-500 text-sky-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
             >
               {tab.label}
             </button>
@@ -4011,14 +3847,14 @@ export default function App() {
         </div>
 
         <div>
-          {adminSubTab === 'users' && renderUsersSubTab()}
-          {adminSubTab === 'locations' && renderLocationsSubTab()}
-          {adminSubTab === 'holidays' && renderHolidaysSubTab()}
-          {adminSubTab === 'projects' && renderProjectsSubTab()}
-          {adminSubTab === 'tasks' && renderTasksSubTab()}
-          {adminSubTab === 'departments' && renderDepartmentsSubTab()}
-          {adminSubTab === 'teams' && renderTeamsSubTab()}
-          {adminSubTab === 'roles' && renderRolesSubTab()}
+          {adminSubTab === "users" && renderUsersSubTab()}
+          {adminSubTab === "locations" && renderLocationsSubTab()}
+          {adminSubTab === "holidays" && renderHolidaysSubTab()}
+          {adminSubTab === "projects" && renderProjectsSubTab()}
+          {adminSubTab === "tasks" && renderTasksSubTab()}
+          {adminSubTab === "departments" && renderDepartmentsSubTab()}
+          {adminSubTab === "teams" && renderTeamsSubTab()}
+          {adminSubTab === "roles" && renderRolesSubTab()}
         </div>
 
         {userModalOpen && renderUserModal()}
@@ -4038,15 +3874,21 @@ export default function App() {
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Proyek & Sprint Kerja</h3>
         <div className="flex gap-2">
-          <button 
-            onClick={() => { resetProjectForm(); setProjectModalOpen(true); }}
+          <button
+            onClick={() => {
+              resetProjectForm();
+              setProjectModalOpen(true);
+            }}
             className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs px-3.5 py-2 rounded-lg"
           >
             <PlusCircle className="h-3.5 w-3.5" />
             Tambah Proyek
           </button>
-          <button 
-            onClick={() => { resetSprintForm(); setSprintModalOpen(true); }}
+          <button
+            onClick={() => {
+              resetSprintForm();
+              setSprintModalOpen(true);
+            }}
             className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-300"
           >
             <PlusCircle className="h-3.5 w-3.5" />
@@ -4057,19 +3899,17 @@ export default function App() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projectsList.map((proj: any) => {
-          const sprints = sprintsList.filter(s => s.project_id === proj.id);
+          const sprints = sprintsList.filter((s) => s.project_id === proj.id);
 
           return (
             <div key={proj.id} className="p-5 bg-white border border-slate-200 rounded-xl space-y-4">
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">{proj.name}</h4>
-                  <span className="font-mono text-[10px] font-bold text-sky-600 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded uppercase mt-1 inline-block">
-                    Prefix: {proj.code_prefix}
-                  </span>
+                  <span className="font-mono text-[10px] font-bold text-sky-600 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded uppercase mt-1 inline-block">Prefix: {proj.code_prefix}</span>
                 </div>
                 <div className="flex gap-1">
-                  <button 
+                  <button
                     onClick={() => {
                       setSelectedProject(proj);
                       setProjectForm({ name: proj.name, codePrefix: proj.code_prefix, status: proj.status });
@@ -4084,18 +3924,18 @@ export default function App() {
 
               <div className="border-t border-slate-200 pt-3 space-y-2">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sprint List:</span>
-                
+
                 {sprints.length === 0 ? (
                   <p className="text-[10px] text-slate-500 italic">Belum ada sprint terdaftar</p>
                 ) : (
                   <div className="space-y-2">
-                    {sprints.map(s => {
-                      const agg = sprintAggregations[s.id] || { progressPct: 0, rag: 'GREEN' };
+                    {sprints.map((s) => {
+                      const agg = sprintAggregations[s.id] || { progressPct: 0, rag: "GREEN" };
                       const dotColors: Record<string, string> = {
-                        GREEN: 'bg-emerald-500',
-                        YELLOW: 'bg-amber-500',
-                        RED: 'bg-red-500',
-                        BLACK: 'bg-rose-500 animate-pulse'
+                        GREEN: "bg-emerald-500",
+                        YELLOW: "bg-amber-500",
+                        RED: "bg-red-500",
+                        BLACK: "bg-rose-500 animate-pulse",
                       };
 
                       return (
@@ -4107,7 +3947,7 @@ export default function App() {
                               ({new Date(s.start_date).toLocaleDateString()} - {new Date(s.end_date).toLocaleDateString()})
                             </span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2.5 font-bold">
                             <span className="text-[10px] text-slate-500">{agg.progressPct}% Done</span>
                             <button
@@ -4116,9 +3956,9 @@ export default function App() {
                                 setSprintForm({
                                   projectId: s.project_id,
                                   number: String(s.number),
-                                  startDate: new Date(s.start_date).toISOString().split('T')[0],
-                                  endDate: new Date(s.end_date).toISOString().split('T')[0],
-                                  goal: s.goal || ''
+                                  startDate: new Date(s.start_date).toISOString().split("T")[0],
+                                  endDate: new Date(s.end_date).toISOString().split("T")[0],
+                                  goal: s.goal || "",
                                 });
                                 setSprintModalOpen(true);
                               }}
@@ -4145,15 +3985,21 @@ export default function App() {
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Daftar Seluruh Tugas (Task)</h3>
         <div className="flex gap-2">
-          <button 
-            onClick={() => { resetTaskForm(); setTaskModalOpen(true); }}
+          <button
+            onClick={() => {
+              resetTaskForm();
+              setTaskModalOpen(true);
+            }}
             className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs px-3.5 py-2 rounded-lg"
           >
             <PlusCircle className="h-3.5 w-3.5" />
             Tambah Tugas Manual
           </button>
-          <button 
-            onClick={() => { setImportType('tasks'); setImportDrawerOpen(true); }}
+          <button
+            onClick={() => {
+              setImportType("tasks");
+              setImportDrawerOpen(true);
+            }}
             className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-300"
           >
             <Upload className="h-3.5 w-3.5" />
@@ -4182,7 +4028,9 @@ export default function App() {
                   <td className="px-6 py-4">
                     <span className="font-mono text-[10px] font-bold text-slate-500">{tsk.code}</span>
                     <div className="font-bold text-slate-900 mt-0.5">{tsk.title}</div>
-                    <div className="text-[10px] text-slate-500">Duration: {new Date(tsk.planned_start).toLocaleDateString()} - {new Date(tsk.planned_end).toLocaleDateString()}</div>
+                    <div className="text-[10px] text-slate-500">
+                      Duration: {new Date(tsk.planned_start).toLocaleDateString()} - {new Date(tsk.planned_end).toLocaleDateString()}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-semibold text-slate-900">{tsk.project?.name}</div>
@@ -4199,35 +4047,33 @@ export default function App() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 uppercase">
-                      {tsk.functional_role?.code || 'Gen'}
-                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 uppercase">{tsk.functional_role?.code || "Gen"}</span>
                     <div className="text-[10px] text-slate-500 mt-1">{tsk.workstream}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-bold text-slate-900">{tsk.percent_complete}%</div>
-                    <div className="text-[10px] text-slate-500 uppercase mt-0.5">{tsk.status.replace(/_/g, ' ')}</div>
+                    <div className="text-[10px] text-slate-500 uppercase mt-0.5">{tsk.status.replace(/_/g, " ")}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-1.5">
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedTask(tsk);
                           setTaskForm({
                             projectId: tsk.project_id,
                             sprintId: tsk.sprint_id,
-                            functionalRoleId: tsk.functional_role_id || '',
+                            functionalRoleId: tsk.functional_role_id || "",
                             workstream: tsk.workstream,
                             title: tsk.title,
-                            deliverable: tsk.deliverable || '',
+                            deliverable: tsk.deliverable || "",
                             priority: tsk.priority,
-                            plannedStart: new Date(tsk.planned_start).toISOString().split('T')[0],
-                            plannedEnd: new Date(tsk.planned_end).toISOString().split('T')[0],
+                            plannedStart: new Date(tsk.planned_start).toISOString().split("T")[0],
+                            plannedEnd: new Date(tsk.planned_end).toISOString().split("T")[0],
                             status: tsk.status,
                             percentComplete: tsk.percent_complete,
                             weight: Number(tsk.weight),
                             riskLevel: tsk.risk_level,
-                            notes: tsk.notes || ''
+                            notes: tsk.notes || "",
                           });
                           setTaskModalOpen(true);
                         }}
@@ -4235,10 +4081,10 @@ export default function App() {
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={async () => {
-                          if (confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
-                            await fetch(`${API_URL}/tasks/${tsk.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                          if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
+                            await fetch(`${API_URL}/tasks/${tsk.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
                             fetchAdminMasterData();
                           }
                         }}
@@ -4262,21 +4108,18 @@ export default function App() {
       <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="h-5 w-5 text-sky-600" />
-          <h3 className="text-base font-bold text-slate-900">
-            {importType === 'users' ? 'Impor Karyawan via Excel' : 'Impor Sprint Tasks via Excel'}
-          </h3>
+          <h3 className="text-base font-bold text-slate-900">{importType === "users" ? "Impor Karyawan via Excel" : "Impor Sprint Tasks via Excel"}</h3>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleDownloadTemplate}
-            className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-600 border border-slate-300 hover:border-sky-500/50 bg-slate-50 px-3 py-1.5 rounded-lg"
-          >
+          <button type="button" onClick={handleDownloadTemplate} className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-600 border border-slate-300 hover:border-sky-500/50 bg-slate-50 px-3 py-1.5 rounded-lg">
             <Download className="h-4 w-4" />
             Unduh Template
           </button>
           <button
-            onClick={() => { setImportPreview(null); setImportDrawerOpen(false); }}
+            onClick={() => {
+              setImportPreview(null);
+              setImportDrawerOpen(false);
+            }}
             className="text-slate-500 hover:text-slate-900 p-1 hover:bg-slate-200 rounded-lg"
           >
             <X className="h-5 w-5" />
@@ -4298,40 +4141,68 @@ export default function App() {
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs text-slate-500">
               <span className="font-bold text-slate-700 block mb-1">Panduan Pengisian Sheet Excel:</span>
               <p>Kolom wajib diisi pada Sheet 1:</p>
-              {importType === 'users' ? (
+              {importType === "users" ? (
                 <ul className="list-disc list-inside space-y-1 text-[11px]">
-                  <li><span className="text-slate-700">Email:</span> Alamat email berakhiran domain perusahaan.</li>
-                  <li><span className="text-slate-700">Nama Lengkap:</span> Nama sesuai KTP.</li>
-                  <li><span className="text-slate-700">NIK:</span> Nomor Induk Karyawan unik.</li>
-                  <li><span className="text-slate-700">Departemen:</span> Nama departemen valid.</li>
-                  <li><span className="text-slate-700">Peran Fungsional:</span> Kode peran valid (BE, FE, QA, dll).</li>
-                  <li><span className="text-slate-700">Email Atasan:</span> Email atasan langsung.</li>
-                  <li><span className="text-slate-700">Sandi:</span> Sandi default.</li>
+                  <li>
+                    <span className="text-slate-700">Email:</span> Alamat email berakhiran domain perusahaan.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Nama Lengkap:</span> Nama sesuai KTP.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">NIK:</span> Nomor Induk Karyawan unik.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Departemen:</span> Nama departemen valid.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Peran Fungsional:</span> Kode peran valid (BE, FE, QA, dll).
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Email Atasan:</span> Email atasan langsung.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Sandi:</span> Sandi default.
+                  </li>
                 </ul>
               ) : (
                 <ul className="list-disc list-inside space-y-1 text-[11px]">
-                  <li><span className="text-slate-700">Task:</span> Judul deskripsi tugas.</li>
-                  <li><span className="text-slate-700">Sprint:</span> Nomor sprint (angka, e.g. 1).</li>
-                  <li><span className="text-slate-700">Planned Start & Planned End:</span> Tanggal rencana.</li>
-                  <li><span className="text-slate-700">Role:</span> Kode peran fungsional (e.g. BE).</li>
-                  <li><span className="text-slate-700">Owner:</span> Email owner (atau 'TBD' jika belum ditetapkan).</li>
-                  <li><span className="text-slate-700">Weight:</span> Bobot tugas (float, e.g. 1.5).</li>
+                  <li>
+                    <span className="text-slate-700">Task:</span> Judul deskripsi tugas.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Sprint:</span> Nomor sprint (angka, e.g. 1).
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Planned Start & Planned End:</span> Tanggal rencana.
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Role:</span> Kode peran fungsional (e.g. BE).
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Owner:</span> Email owner (atau 'TBD' jika belum ditetapkan).
+                  </li>
+                  <li>
+                    <span className="text-slate-700">Weight:</span> Bobot tugas (float, e.g. 1.5).
+                  </li>
                 </ul>
               )}
             </div>
 
-            {importType === 'tasks' && (
+            {importType === "tasks" && (
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Proyek Sasaran</label>
                 <select
                   required
                   className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={importSelectedProjectId}
-                  onChange={e => setImportSelectedProjectId(e.target.value)}
+                  onChange={(e) => setImportSelectedProjectId(e.target.value)}
                 >
                   <option value="">Pilih Proyek Sasaran</option>
-                  {projectsList.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                  {projectsList.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -4339,10 +4210,10 @@ export default function App() {
 
             <div className="space-y-2">
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">File Spreadsheet (.xlsx)</label>
-              <div 
+              <div
                 onClick={() => {
-                  if (importType === 'tasks' && !importSelectedProjectId) {
-                    alert('Silakan pilih proyek sasaran terlebih dahulu!');
+                  if (importType === "tasks" && !importSelectedProjectId) {
+                    alert("Silakan pilih proyek sasaran terlebih dahulu!");
                     return;
                   }
                   fileInputRef.current?.click();
@@ -4352,13 +4223,7 @@ export default function App() {
                 <Upload className="h-8 w-8 text-slate-500" />
                 <span className="text-xs font-semibold text-slate-600 mt-3">Pilih file Excel Anda</span>
                 <span className="text-[10px] text-slate-500 mt-1">Hanya mendukung format xlsx</span>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  accept=".xlsx" 
-                  className="hidden" 
-                />
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".xlsx" className="hidden" />
               </div>
             </div>
 
@@ -4380,11 +4245,11 @@ export default function App() {
 
                 <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200">
                   {importPreview.rows.map((row: any, index: number) => (
-                    <div key={index} className={`p-4 text-xs ${row.isValid ? 'bg-slate-50/20' : 'bg-red-950/10 border-l-4 border-l-red-500'}`}>
+                    <div key={index} className={`p-4 text-xs ${row.isValid ? "bg-slate-50/20" : "bg-red-950/10 border-l-4 border-l-red-500"}`}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className="font-bold text-slate-900">{row.title || 'Tanpa Judul'}</span>
-                          {importType === 'tasks' && <span className="text-[10px] text-slate-500 ml-2">Sprint #{row.sprintNumber}</span>}
+                          <span className="font-bold text-slate-900">{row.title || "Tanpa Judul"}</span>
+                          {importType === "tasks" && <span className="text-[10px] text-slate-500 ml-2">Sprint #{row.sprintNumber}</span>}
                         </div>
                         {row.isValid ? (
                           <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase">Ready</span>
@@ -4393,15 +4258,23 @@ export default function App() {
                         )}
                       </div>
                       <div className="flex gap-4 text-[10px] text-slate-500 mt-2 font-mono">
-                        {importType === 'users' ? (
+                        {importType === "users" ? (
                           <>
-                            <div>NIK: <span className="text-slate-900">{row.nik || '-'}</span></div>
-                            <div>Dept: <span className="text-sky-600">{row.departmentName || '-'}</span></div>
+                            <div>
+                              NIK: <span className="text-slate-900">{row.nik || "-"}</span>
+                            </div>
+                            <div>
+                              Dept: <span className="text-sky-600">{row.departmentName || "-"}</span>
+                            </div>
                           </>
                         ) : (
                           <>
-                            <div>Owner: <span className="text-slate-900">{row.ownerEmail || 'TBD'}</span></div>
-                            <div>Bobot (Weight): <span className="text-sky-600">{row.weight}</span></div>
+                            <div>
+                              Owner: <span className="text-slate-900">{row.ownerEmail || "TBD"}</span>
+                            </div>
+                            <div>
+                              Bobot (Weight): <span className="text-sky-600">{row.weight}</span>
+                            </div>
                           </>
                         )}
                       </div>
@@ -4426,15 +4299,13 @@ export default function App() {
 
       {!importCommitMessage && importPreview && (
         <div className="p-6 border-t border-slate-200 bg-white/80 shrink-0 flex gap-3">
-          <button 
-            onClick={handleCommitImport}
-            disabled={importPreview.valid === 0 || importLoading}
-            className="flex-1 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs py-3 rounded-lg text-center"
-          >
+          <button onClick={handleCommitImport} disabled={importPreview.valid === 0 || importLoading} className="flex-1 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs py-3 rounded-lg text-center">
             Commit & Simpan {importPreview.valid} Baris (Daftar Gagal Diabaikan)
           </button>
-          <button 
-            onClick={() => { setImportPreview(null); }}
+          <button
+            onClick={() => {
+              setImportPreview(null);
+            }}
             className="px-6 bg-slate-50 text-slate-500 font-bold text-xs py-3 rounded-lg text-center border border-slate-200"
           >
             Batal
@@ -4448,38 +4319,46 @@ export default function App() {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">{selectedProject ? 'Ubah Proyek' : 'Tambah Proyek Baru'}</h3>
-          <button onClick={() => setProjectModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <h3 className="text-sm font-bold text-slate-900">{selectedProject ? "Ubah Proyek" : "Tambah Proyek Baru"}</h3>
+          <button onClick={() => setProjectModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSaveProject}>
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Nama Proyek</label>
-              <input 
-                type="text" required
+              <input
+                type="text"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Core Platform Revamp"
                 value={projectForm.name}
-                onChange={e => setProjectForm({ ...projectForm, name: e.target.value })}
+                onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })}
               />
             </div>
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Prefix Kode Tugas (e.g. CORE, HW)</label>
-              <input 
-                type="text" required
+              <input
+                type="text"
+                required
                 disabled={!!selectedProject}
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                 placeholder="CORE"
                 value={projectForm.codePrefix}
-                onChange={e => setProjectForm({ ...projectForm, codePrefix: e.target.value })}
+                onChange={(e) => setProjectForm({ ...projectForm, codePrefix: e.target.value })}
               />
             </div>
           </div>
 
           <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setProjectModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">
+              Simpan
+            </button>
+            <button type="button" onClick={() => setProjectModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+              Batal
+            </button>
           </div>
         </form>
       </div>
@@ -4490,8 +4369,10 @@ export default function App() {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">{selectedSprint ? 'Ubah Sprint' : 'Tambah Sprint Baru'}</h3>
-          <button onClick={() => setSprintModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <h3 className="text-sm font-bold text-slate-900">{selectedSprint ? "Ubah Sprint" : "Tambah Sprint Baru"}</h3>
+          <button onClick={() => setSprintModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSaveSprint}>
@@ -4503,62 +4384,71 @@ export default function App() {
                 disabled={!!selectedSprint}
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                 value={sprintForm.projectId}
-                onChange={e => setSprintForm({ ...sprintForm, projectId: e.target.value })}
+                onChange={(e) => setSprintForm({ ...sprintForm, projectId: e.target.value })}
               >
                 <option value="">Pilih Proyek</option>
-                {projectsList.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                {projectsList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Nomor Sprint (e.g. 1, 2)</label>
-              <input 
-                type="number" required
+              <input
+                type="number"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="1"
                 value={sprintForm.number}
-                onChange={e => setSprintForm({ ...sprintForm, number: e.target.value })}
+                onChange={(e) => setSprintForm({ ...sprintForm, number: e.target.value })}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Tanggal Mulai</label>
-                <input 
-                  type="date" required
+                <input
+                  type="date"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={sprintForm.startDate}
-                  onChange={e => setSprintForm({ ...sprintForm, startDate: e.target.value })}
+                  onChange={(e) => setSprintForm({ ...sprintForm, startDate: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Tanggal Selesai</label>
-                <input 
-                  type="date" required
+                <input
+                  type="date"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={sprintForm.endDate}
-                  onChange={e => setSprintForm({ ...sprintForm, endDate: e.target.value })}
+                  onChange={(e) => setSprintForm({ ...sprintForm, endDate: e.target.value })}
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Goal / Deskripsi Target</label>
-              <input 
+              <input
                 type="text"
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Menyelesaikan pipeline CI/CD dan Autentikasi"
                 value={sprintForm.goal}
-                onChange={e => setSprintForm({ ...sprintForm, goal: e.target.value })}
+                onChange={(e) => setSprintForm({ ...sprintForm, goal: e.target.value })}
               />
             </div>
           </div>
 
           <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setSprintModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">
+              Simpan
+            </button>
+            <button type="button" onClick={() => setSprintModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+              Batal
+            </button>
           </div>
         </form>
       </div>
@@ -4569,8 +4459,10 @@ export default function App() {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">{selectedTask ? 'Ubah Tugas' : 'Tambah Tugas Baru'}</h3>
-          <button onClick={() => setTaskModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <h3 className="text-sm font-bold text-slate-900">{selectedTask ? "Ubah Tugas" : "Tambah Tugas Baru"}</h3>
+          <button onClick={() => setTaskModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSaveTask}>
@@ -4583,11 +4475,13 @@ export default function App() {
                   disabled={!!selectedTask}
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                   value={taskForm.projectId}
-                  onChange={e => setTaskForm({ ...taskForm, projectId: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, projectId: e.target.value })}
                 >
                   <option value="">Pilih Project</option>
-                  {projectsList.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                  {projectsList.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -4598,44 +4492,51 @@ export default function App() {
                   disabled={!!selectedTask}
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                   value={taskForm.sprintId}
-                  onChange={e => setTaskForm({ ...taskForm, sprintId: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, sprintId: e.target.value })}
                 >
                   <option value="">Pilih Sprint</option>
-                  {sprintsList.filter(s => s.project_id === taskForm.projectId).map(s => (
-                    <option key={s.id} value={s.id}>Sprint #{s.number}</option>
-                  ))}
+                  {sprintsList
+                    .filter((s) => s.project_id === taskForm.projectId)
+                    .map((s) => (
+                      <option key={s.id} value={s.id}>
+                        Sprint #{s.number}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Deskripsi Tugas (Task)</label>
-              <input 
-                type="text" required
+              <input
+                type="text"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Implementasi endpoint CRUD User"
                 value={taskForm.title}
-                onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Planned Start</label>
-                <input 
-                  type="date" required
+                <input
+                  type="date"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.plannedStart}
-                  onChange={e => setTaskForm({ ...taskForm, plannedStart: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, plannedStart: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Planned End</label>
-                <input 
-                  type="date" required
+                <input
+                  type="date"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.plannedEnd}
-                  onChange={e => setTaskForm({ ...taskForm, plannedEnd: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, plannedEnd: e.target.value })}
                 />
               </div>
             </div>
@@ -4646,30 +4547,34 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.functionalRoleId}
-                  onChange={e => setTaskForm({ ...taskForm, functionalRoleId: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, functionalRoleId: e.target.value })}
                 >
                   <option value="">Pilih Role</option>
-                  {rolesList.map(r => (
-                    <option key={r.id} value={r.id}>{r.name} ({r.code})</option>
+                  {rolesList.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({r.code})
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Workstream</label>
-                <input 
+                <input
                   type="text"
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.workstream}
-                  onChange={e => setTaskForm({ ...taskForm, workstream: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, workstream: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Bobot (Weight)</label>
-                <input 
-                  type="number" step="0.1" required
+                <input
+                  type="number"
+                  step="0.1"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.weight}
-                  onChange={e => setTaskForm({ ...taskForm, weight: parseFloat(e.target.value) || 1.0 })}
+                  onChange={(e) => setTaskForm({ ...taskForm, weight: parseFloat(e.target.value) || 1.0 })}
                 />
               </div>
             </div>
@@ -4680,10 +4585,12 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.priority}
-                  onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
                 >
-                  {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
-                    <option key={p} value={p}>{p}</option>
+                  {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -4692,20 +4599,22 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.riskLevel}
-                  onChange={e => setTaskForm({ ...taskForm, riskLevel: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, riskLevel: e.target.value })}
                 >
-                  {['LOW', 'MEDIUM', 'HIGH'].map(r => (
-                    <option key={r} value={r}>{r}</option>
+                  {["LOW", "MEDIUM", "HIGH"].map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Deliverable</label>
-                <input 
+                <input
                   type="text"
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.deliverable}
-                  onChange={e => setTaskForm({ ...taskForm, deliverable: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, deliverable: e.target.value })}
                 />
               </div>
             </div>
@@ -4716,38 +4625,47 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.status}
-                  onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}
+                  onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value })}
                 >
-                  {['NOT_STARTED', 'IN_PROGRESS', 'DONE', 'BLOCKED'].map(s => (
-                    <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                  {["NOT_STARTED", "IN_PROGRESS", "DONE", "BLOCKED"].map((s) => (
+                    <option key={s} value={s}>
+                      {s.replace(/_/g, " ")}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">% Complete (0-100)</label>
-                <input 
-                  type="number" min="0" max="100" required
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.percentComplete}
-                  onChange={e => setTaskForm({ ...taskForm, percentComplete: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setTaskForm({ ...taskForm, percentComplete: parseInt(e.target.value) || 0 })}
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Catatan (Notes)</label>
-              <textarea 
+              <textarea
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none"
                 placeholder="Opsional catatan detail tugas..."
                 value={taskForm.notes}
-                onChange={e => setTaskForm({ ...taskForm, notes: e.target.value })}
+                onChange={(e) => setTaskForm({ ...taskForm, notes: e.target.value })}
               />
             </div>
           </div>
 
           <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setTaskModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">
+              Simpan
+            </button>
+            <button type="button" onClick={() => setTaskModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+              Batal
+            </button>
           </div>
         </form>
       </div>
@@ -4763,24 +4681,32 @@ export default function App() {
 
       {/* Read-only identity */}
       <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-2.5 text-xs">
-        <div className="flex justify-between"><span className="text-slate-500">Email</span> <span className="text-slate-900">{user.email}</span></div>
-        <div className="flex justify-between"><span className="text-slate-500">NIK</span> <span className="text-slate-900 font-mono">{user.nik}</span></div>
-        <div className="flex justify-between"><span className="text-slate-500">Peran Sistem</span> <span className="text-sky-600 font-semibold">{(user.roles || []).join(', ')}</span></div>
-        <div className="flex justify-between"><span className="text-slate-500">Mode Check-in</span> <span className="text-slate-600">{user.checkinMode}</span></div>
+        <div className="flex justify-between">
+          <span className="text-slate-500">Email</span> <span className="text-slate-900">{user.email}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-500">NIK</span> <span className="text-slate-900 font-mono">{user.nik}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-500">Peran Sistem</span> <span className="text-sky-600 font-semibold">{(user.roles || []).join(", ")}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-500">Mode Check-in</span> <span className="text-slate-600">{user.checkinMode}</span>
+        </div>
         <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-200">Email, NIK, dan peran hanya dapat diubah oleh Admin/HR.</p>
       </div>
 
       {/* Edit profile */}
       <form onSubmit={handleUpdateProfile} className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4">
         <h2 className="text-sm font-bold text-slate-900">Ubah Profil</h2>
-        {profileMsg && (
-          <div className={`text-xs rounded-lg px-3 py-2 border ${profileMsg.ok ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>{profileMsg.text}</div>
-        )}
+        {profileMsg && <div className={`text-xs rounded-lg px-3 py-2 border ${profileMsg.ok ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"}`}>{profileMsg.text}</div>}
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</label>
           <input
-            type="text" required value={profileForm.fullName}
-            onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
+            type="text"
+            required
+            value={profileForm.fullName}
+            onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
             className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
         </div>
@@ -4788,7 +4714,7 @@ export default function App() {
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Zona Waktu</label>
           <select
             value={profileForm.timezone}
-            onChange={e => setProfileForm({ ...profileForm, timezone: e.target.value })}
+            onChange={(e) => setProfileForm({ ...profileForm, timezone: e.target.value })}
             className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           >
             <option value="Asia/Jakarta">WIB — Asia/Jakarta</option>
@@ -4797,29 +4723,32 @@ export default function App() {
           </select>
         </div>
         <button type="submit" disabled={profileSaving} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
-          {profileSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Simpan Profil'}
+          {profileSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Simpan Profil"}
         </button>
       </form>
 
       {/* Change password */}
       <form onSubmit={handleChangePassword} className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4">
         <h2 className="text-sm font-bold text-slate-900">Ganti Sandi</h2>
-        {passwordMsg && (
-          <div className={`text-xs rounded-lg px-3 py-2 border ${passwordMsg.ok ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>{passwordMsg.text}</div>
-        )}
+        {passwordMsg && <div className={`text-xs rounded-lg px-3 py-2 border ${passwordMsg.ok ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"}`}>{passwordMsg.text}</div>}
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sandi Lama</label>
           <input
-            type="password" required value={passwordForm.oldPassword}
-            onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+            type="password"
+            required
+            value={passwordForm.oldPassword}
+            onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
             className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
         </div>
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sandi Baru</label>
           <input
-            type="password" required minLength={8} value={passwordForm.newPassword}
-            onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+            type="password"
+            required
+            minLength={8}
+            value={passwordForm.newPassword}
+            onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
             className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
           <p className="text-[10px] text-slate-500 mt-1">Minimal 8 karakter.</p>
@@ -4827,13 +4756,15 @@ export default function App() {
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Konfirmasi Sandi Baru</label>
           <input
-            type="password" required value={passwordForm.confirmPassword}
-            onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+            type="password"
+            required
+            value={passwordForm.confirmPassword}
+            onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
             className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
         </div>
         <button type="submit" disabled={passwordSaving} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
-          {passwordSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Perbarui Sandi'}
+          {passwordSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Perbarui Sandi"}
         </button>
       </form>
 
@@ -4848,7 +4779,9 @@ export default function App() {
       <div className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-900">Assign Owner Tugas</h3>
-          <button onClick={() => setAssignModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <button onClick={() => setAssignModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <div className="p-6 space-y-4">
@@ -4857,15 +4790,17 @@ export default function App() {
             <select
               className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
               defaultValue=""
-              onChange={e => {
+              onChange={(e) => {
                 if (selectedTask && e.target.value) {
                   handleAssignOwner(selectedTask.id, e.target.value);
                 }
               }}
             >
               <option value="">Pilih Karyawan</option>
-              {usersList.map(usr => (
-                <option key={usr.id} value={usr.id}>{usr.full_name} ({usr.email})</option>
+              {usersList.map((usr) => (
+                <option key={usr.id} value={usr.id}>
+                  {usr.full_name} ({usr.email})
+                </option>
               ))}
             </select>
           </div>
@@ -4878,8 +4813,10 @@ export default function App() {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-white/60 shrink-0">
-          <h3 className="text-sm font-bold text-slate-900">{selectedUser ? 'Ubah Karyawan' : 'Tambah Karyawan Baru'}</h3>
-          <button onClick={() => setUserModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <h3 className="text-sm font-bold text-slate-900">{selectedUser ? "Ubah Karyawan" : "Tambah Karyawan Baru"}</h3>
+          <button onClick={() => setUserModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSaveUser}>
@@ -4887,11 +4824,12 @@ export default function App() {
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</label>
               <input
-                type="text" required
+                type="text"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Budi Santoso"
                 value={userForm.fullName}
-                onChange={e => setUserForm({ ...userForm, fullName: e.target.value })}
+                onChange={(e) => setUserForm({ ...userForm, fullName: e.target.value })}
               />
             </div>
 
@@ -4899,21 +4837,23 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Kerja</label>
                 <input
-                  type="email" required
+                  type="email"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="budi@indotek.com"
                   value={userForm.email}
-                  onChange={e => setUserForm({ ...userForm, email: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">NIK</label>
                 <input
-                  type="text" required
+                  type="text"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="NIK-1234"
                   value={userForm.nik}
-                  onChange={e => setUserForm({ ...userForm, nik: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, nik: e.target.value })}
                 />
               </div>
             </div>
@@ -4922,11 +4862,12 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kata Sandi</label>
                 <input
-                  type="password" required
+                  type="password"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="••••••••"
                   value={userForm.password}
-                  onChange={e => setUserForm({ ...userForm, password: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
                 />
               </div>
             )}
@@ -4937,11 +4878,13 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.departmentId}
-                  onChange={e => setUserForm({ ...userForm, departmentId: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, departmentId: e.target.value })}
                 >
                   <option value="">Pilih Departemen</option>
-                  {departmentsList.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  {departmentsList.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -4950,11 +4893,13 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.functionalRoleId}
-                  onChange={e => setUserForm({ ...userForm, functionalRoleId: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, functionalRoleId: e.target.value })}
                 >
                   <option value="">Pilih Peran</option>
-                  {rolesList.map(role => (
-                    <option key={role.id} value={role.id}>{role.name} ({role.code})</option>
+                  {rolesList.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name} ({role.code})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -4966,11 +4911,13 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.managerId}
-                  onChange={e => setUserForm({ ...userForm, managerId: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, managerId: e.target.value })}
                 >
                   <option value="">Pilih Atasan</option>
-                  {usersList.map(u => (
-                    <option key={u.id} value={u.id}>{u.full_name}</option>
+                  {usersList.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.full_name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -4979,7 +4926,7 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.timezone}
-                  onChange={e => setUserForm({ ...userForm, timezone: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, timezone: e.target.value })}
                 >
                   <option value="Asia/Jakarta">Asia/Jakarta (WIB)</option>
                   <option value="Asia/Makassar">Asia/Makassar (WITA)</option>
@@ -4994,7 +4941,7 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.checkinMode}
-                  onChange={e => setUserForm({ ...userForm, checkinMode: e.target.value })}
+                  onChange={(e) => setUserForm({ ...userForm, checkinMode: e.target.value })}
                 >
                   <option value="TWICE">TWICE (IN & OUT)</option>
                   <option value="ONCE">ONCE (IN Saja)</option>
@@ -5003,10 +4950,11 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jatah Cuti (Leave Balance)</label>
                 <input
-                  type="number" required
+                  type="number"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.leaveBalance}
-                  onChange={e => setUserForm({ ...userForm, leaveBalance: parseInt(e.target.value) || 12 })}
+                  onChange={(e) => setUserForm({ ...userForm, leaveBalance: parseInt(e.target.value) || 12 })}
                 />
               </div>
             </div>
@@ -5017,7 +4965,7 @@ export default function App() {
                 multiple
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none min-h-[80px]"
                 value={userForm.systemRoles}
-                onChange={e => {
+                onChange={(e) => {
                   const options = e.target.options;
                   const selected: string[] = [];
                   for (let i = 0; i < options.length; i++) {
@@ -5035,8 +4983,12 @@ export default function App() {
           </div>
 
           <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setUserModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">
+              Simpan
+            </button>
+            <button type="button" onClick={() => setUserModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+              Batal
+            </button>
           </div>
         </form>
       </div>
@@ -5047,8 +4999,10 @@ export default function App() {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">{selectedLocation ? 'Ubah Lokasi' : 'Tambah Lokasi Baru'}</h3>
-          <button onClick={() => setLocationModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <h3 className="text-sm font-bold text-slate-900">{selectedLocation ? "Ubah Lokasi" : "Tambah Lokasi Baru"}</h3>
+          <button onClick={() => setLocationModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSaveLocation}>
@@ -5056,11 +5010,12 @@ export default function App() {
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Nama Lokasi / Kantor</label>
               <input
-                type="text" required
+                type="text"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Kantor Pusat Indotek"
                 value={locationForm.name}
-                onChange={e => setLocationForm({ ...locationForm, name: e.target.value })}
+                onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
               />
             </div>
 
@@ -5070,7 +5025,7 @@ export default function App() {
                 <select
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={locationForm.type}
-                  onChange={e => setLocationForm({ ...locationForm, type: e.target.value })}
+                  onChange={(e) => setLocationForm({ ...locationForm, type: e.target.value })}
                 >
                   <option value="OFFICE">OFFICE (Kantor Internal)</option>
                   <option value="CLIENT">CLIENT (Lokasi Proyek Klien)</option>
@@ -5079,11 +5034,12 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Radius Validasi (Meter)</label>
                 <input
-                  type="number" required
+                  type="number"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="200"
                   value={locationForm.radiusM}
-                  onChange={e => setLocationForm({ ...locationForm, radiusM: e.target.value })}
+                  onChange={(e) => setLocationForm({ ...locationForm, radiusM: e.target.value })}
                 />
               </div>
             </div>
@@ -5092,29 +5048,35 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Latitude</label>
                 <input
-                  type="text" required
+                  type="text"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="-6.917464"
                   value={locationForm.lat}
-                  onChange={e => setLocationForm({ ...locationForm, lat: e.target.value })}
+                  onChange={(e) => setLocationForm({ ...locationForm, lat: e.target.value })}
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Longitude</label>
                 <input
-                  type="text" required
+                  type="text"
+                  required
                   className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="107.619122"
                   value={locationForm.lng}
-                  onChange={e => setLocationForm({ ...locationForm, lng: e.target.value })}
+                  onChange={(e) => setLocationForm({ ...locationForm, lng: e.target.value })}
                 />
               </div>
             </div>
           </div>
 
           <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setLocationModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">
+              Simpan
+            </button>
+            <button type="button" onClick={() => setLocationModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+              Batal
+            </button>
           </div>
         </form>
       </div>
@@ -5125,8 +5087,10 @@ export default function App() {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">{selectedHoliday ? 'Ubah Hari Libur' : 'Tambah Hari Libur'}</h3>
-          <button onClick={() => setHolidayModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
+          <h3 className="text-sm font-bold text-slate-900">{selectedHoliday ? "Ubah Hari Libur" : "Tambah Hari Libur"}</h3>
+          <button onClick={() => setHolidayModalOpen(false)} className="text-slate-500 hover:text-slate-900">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSaveHoliday}>
@@ -5134,40 +5098,41 @@ export default function App() {
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Tanggal Libur</label>
               <input
-                type="date" required
+                type="date"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 value={holidayForm.date}
-                onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
+                onChange={(e) => setHolidayForm({ ...holidayForm, date: e.target.value })}
               />
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Deskripsi / Nama Libur</label>
               <input
-                type="text" required
+                type="text"
+                required
                 className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Tahun Baru Islam"
                 value={holidayForm.name}
-                onChange={e => setHolidayForm({ ...holidayForm, name: e.target.value })}
+                onChange={(e) => setHolidayForm({ ...holidayForm, name: e.target.value })}
               />
             </div>
 
             <div>
               <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0"
-                  checked={holidayForm.isCutiBersama}
-                  onChange={e => setHolidayForm({ ...holidayForm, isCutiBersama: e.target.checked })}
-                />
+                <input type="checkbox" className="rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0" checked={holidayForm.isCutiBersama} onChange={(e) => setHolidayForm({ ...holidayForm, isCutiBersama: e.target.checked })} />
                 <span>Merupakan Cuti Bersama? (Opsional)</span>
               </label>
             </div>
           </div>
 
           <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
-            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setHolidayModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
+            <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">
+              Simpan
+            </button>
+            <button type="button" onClick={() => setHolidayModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">
+              Batal
+            </button>
           </div>
         </form>
       </div>
@@ -5179,15 +5144,21 @@ export default function App() {
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Daftar Pengguna ({usersList.length})</h3>
         <div className="flex gap-2">
-          <button 
-            onClick={() => { resetUserForm(); setUserModalOpen(true); }}
+          <button
+            onClick={() => {
+              resetUserForm();
+              setUserModalOpen(true);
+            }}
             className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs px-3.5 py-2 rounded-lg"
           >
             <PlusCircle className="h-3.5 w-3.5" />
             Tambah Karyawan
           </button>
-          <button 
-            onClick={() => { setImportType('users'); setImportDrawerOpen(true); }}
+          <button
+            onClick={() => {
+              setImportType("users");
+              setImportDrawerOpen(true);
+            }}
             className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-300"
           >
             <Upload className="h-3.5 w-3.5" />
@@ -5215,24 +5186,26 @@ export default function App() {
                   <div className="text-[10px] text-slate-500">{usr.email}</div>
                   <div className="flex gap-1 mt-1">
                     {usr.system_roles.map((r: string) => (
-                      <span key={r} className="text-[8px] bg-slate-100 px-1 py-0.2 rounded text-slate-500 uppercase font-bold border border-slate-300">{r}</span>
+                      <span key={r} className="text-[8px] bg-slate-100 px-1 py-0.2 rounded text-slate-500 uppercase font-bold border border-slate-300">
+                        {r}
+                      </span>
                     ))}
                   </div>
                 </td>
                 <td className="px-6 py-4 font-mono text-[11px] text-slate-500">{usr.nik}</td>
-                <td className="px-6 py-4 font-medium text-sky-600">{usr.functional_role?.name || '-'}</td>
-                <td className="px-6 py-4">{usr.department?.name || '-'}</td>
+                <td className="px-6 py-4 font-medium text-sky-600">{usr.functional_role?.name || "-"}</td>
+                <td className="px-6 py-4">{usr.department?.name || "-"}</td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-1.5">
-                    <button 
-                      onClick={() => handleExportPDP(usr.id, usr.full_name)}
-                      className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-200"
-                      title="Ekspor Data PDP"
-                    >
+                    <button onClick={() => handleExportPDP(usr.id, usr.full_name)} className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-200" title="Ekspor Data PDP">
                       <Download className="h-4 w-4" />
                     </button>
-                    <button onClick={() => openEditUser(usr)} className="p-1 text-slate-500 hover:text-sky-600 hover:bg-slate-200 rounded"><Edit2 className="h-4 w-4" /></button>
-                    <button onClick={() => handleDeleteUser(usr.id)} className="p-1 text-slate-500 hover:text-rose-600 hover:bg-slate-200 rounded"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => openEditUser(usr)} className="p-1 text-slate-500 hover:text-sky-600 hover:bg-slate-200 rounded">
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => handleDeleteUser(usr.id)} className="p-1 text-slate-500 hover:text-rose-600 hover:bg-slate-200 rounded">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -5247,7 +5220,15 @@ export default function App() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Lokasi Kantor & Klien</h3>
-        <button onClick={() => { resetLocationForm(); setLocationModalOpen(true); }} className="flex items-center gap-1 bg-sky-500 text-white text-xs px-3.5 py-2 rounded-lg"><PlusCircle className="h-3.5 w-3.5" /> Tambah Lokasi</button>
+        <button
+          onClick={() => {
+            resetLocationForm();
+            setLocationModalOpen(true);
+          }}
+          className="flex items-center gap-1 bg-sky-500 text-white text-xs px-3.5 py-2 rounded-lg"
+        >
+          <PlusCircle className="h-3.5 w-3.5" /> Tambah Lokasi
+        </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {locationsList.map((loc: any) => (
@@ -5258,9 +5239,16 @@ export default function App() {
                 <span className="text-[9px] uppercase font-bold text-sky-600 bg-sky-500/10 px-1.5 py-0.2 rounded border border-sky-500/20 inline-block mt-1">{loc.type}</span>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => openEditLocation(loc)} className="p-1 text-slate-500 hover:text-sky-600"><Edit2 className="h-3.5 w-3.5" /></button>
-                <button 
-                  onClick={async () => { if (confirm('Hapus lokasi?')) { await fetch(`${API_URL}/admin/locations/${loc.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }} 
+                <button onClick={() => openEditLocation(loc)} className="p-1 text-slate-500 hover:text-sky-600">
+                  <Edit2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={async () => {
+                    if (confirm("Hapus lokasi?")) {
+                      await fetch(`${API_URL}/admin/locations/${loc.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                      fetchAdminMasterData();
+                    }
+                  }}
                   className="p-1 text-slate-500 hover:text-rose-600"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -5268,8 +5256,15 @@ export default function App() {
               </div>
             </div>
             <div className="mt-3 text-[11px] text-slate-500 space-y-1 pt-2 border-t border-slate-200">
-              <div className="flex justify-between"><span>Radius:</span> <span>{loc.radius_m}m</span></div>
-              <div className="flex justify-between"><span>Coords:</span> <span>{loc.lat},{loc.lng}</span></div>
+              <div className="flex justify-between">
+                <span>Radius:</span> <span>{loc.radius_m}m</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Coords:</span>{" "}
+                <span>
+                  {loc.lat},{loc.lng}
+                </span>
+              </div>
             </div>
           </div>
         ))}
@@ -5281,12 +5276,25 @@ export default function App() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Kalender Hari Libur</h3>
-        <button onClick={() => { resetHolidayForm(); setHolidayModalOpen(true); }} className="flex items-center gap-1 bg-sky-500 text-white text-xs px-3.5 py-2 rounded-lg"><PlusCircle className="h-3.5 w-3.5" /> Tambah Libur</button>
+        <button
+          onClick={() => {
+            resetHolidayForm();
+            setHolidayModalOpen(true);
+          }}
+          className="flex items-center gap-1 bg-sky-500 text-white text-xs px-3.5 py-2 rounded-lg"
+        >
+          <PlusCircle className="h-3.5 w-3.5" /> Tambah Libur
+        </button>
       </div>
       <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white/40">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase bg-white/60"><th className="px-6 py-3">Tanggal</th><th className="px-6 py-3">Nama Libur</th><th className="px-6 py-3">Tipe</th><th className="px-6 py-3 text-right">Aksi</th></tr>
+            <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase bg-white/60">
+              <th className="px-6 py-3">Tanggal</th>
+              <th className="px-6 py-3">Nama Libur</th>
+              <th className="px-6 py-3">Tipe</th>
+              <th className="px-6 py-3 text-right">Aksi</th>
+            </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 text-slate-600">
             {holidaysList.map((h: any) => (
@@ -5294,14 +5302,21 @@ export default function App() {
                 <td className="px-6 py-3 font-mono">{new Date(h.date).toLocaleDateString()}</td>
                 <td className="px-6 py-3 font-semibold text-slate-900">{h.name}</td>
                 <td className="px-6 py-3">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${h.is_cuti_bersama ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
-                    {h.is_cuti_bersama ? 'Cuti Bersama' : 'Libur Nasional'}
+                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${h.is_cuti_bersama ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"}`}>
+                    {h.is_cuti_bersama ? "Cuti Bersama" : "Libur Nasional"}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-right">
-                  <button onClick={() => openEditHoliday(h)} className="p-1 text-slate-500 hover:text-sky-600 mr-2"><Edit2 className="h-4 w-4" /></button>
-                  <button 
-                    onClick={async () => { if (confirm('Hapus libur?')) { await fetch(`${API_URL}/admin/holidays/${h.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
+                  <button onClick={() => openEditHoliday(h)} className="p-1 text-slate-500 hover:text-sky-600 mr-2">
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (confirm("Hapus libur?")) {
+                        await fetch(`${API_URL}/admin/holidays/${h.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                        fetchAdminMasterData();
+                      }
+                    }}
                     className="p-1 text-slate-500 hover:text-rose-600"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -5319,11 +5334,11 @@ export default function App() {
     <div className="space-y-4 max-w-xl">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Departemen</h3>
-        <button 
+        <button
           onClick={async () => {
-            const name = prompt('Nama Departemen:');
+            const name = prompt("Nama Departemen:");
             if (name) {
-              await fetch(`${API_URL}/admin/departments`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+              await fetch(`${API_URL}/admin/departments`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
               fetchAdminMasterData();
             }
           }}
@@ -5336,8 +5351,13 @@ export default function App() {
         {departmentsList.map((d: any) => (
           <div key={d.id} className="p-4 flex justify-between items-center">
             <span className="font-semibold text-slate-900">{d.name}</span>
-            <button 
-              onClick={async () => { if (confirm('Hapus?')) { await fetch(`${API_URL}/admin/departments/${d.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
+            <button
+              onClick={async () => {
+                if (confirm("Hapus?")) {
+                  await fetch(`${API_URL}/admin/departments/${d.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                  fetchAdminMasterData();
+                }
+              }}
               className="text-slate-500 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
@@ -5352,11 +5372,11 @@ export default function App() {
     <div className="space-y-4 max-w-xl">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Tim Kerja</h3>
-        <button 
+        <button
           onClick={async () => {
-            const name = prompt('Nama Tim:');
+            const name = prompt("Nama Tim:");
             if (name) {
-              await fetch(`${API_URL}/admin/teams`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+              await fetch(`${API_URL}/admin/teams`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
               fetchAdminMasterData();
             }
           }}
@@ -5369,8 +5389,13 @@ export default function App() {
         {teamsList.map((t: any) => (
           <div key={t.id} className="p-4 flex justify-between items-center">
             <span className="font-semibold text-slate-900">{t.name}</span>
-            <button 
-              onClick={async () => { if (confirm('Hapus?')) { await fetch(`${API_URL}/admin/teams/${t.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
+            <button
+              onClick={async () => {
+                if (confirm("Hapus?")) {
+                  await fetch(`${API_URL}/admin/teams/${t.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                  fetchAdminMasterData();
+                }
+              }}
               className="text-slate-500 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
@@ -5385,12 +5410,12 @@ export default function App() {
     <div className="space-y-4 max-w-xl">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-slate-900">Peran Fungsional</h3>
-        <button 
+        <button
           onClick={async () => {
-            const name = prompt('Nama Peran:');
-            const code = prompt('Kode Peran:');
+            const name = prompt("Nama Peran:");
+            const code = prompt("Kode Peran:");
             if (name && code) {
-              await fetch(`${API_URL}/admin/functional-roles`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name, code }) });
+              await fetch(`${API_URL}/admin/functional-roles`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ name, code }) });
               fetchAdminMasterData();
             }
           }}
@@ -5406,8 +5431,13 @@ export default function App() {
               <span className="font-semibold text-slate-900">{r.name}</span>
               <span className="ml-2 bg-sky-500/10 text-sky-600 px-2 py-0.5 rounded text-[10px] font-mono">{r.code}</span>
             </div>
-            <button 
-              onClick={async () => { if (confirm('Hapus?')) { await fetch(`${API_URL}/admin/functional-roles/${r.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
+            <button
+              onClick={async () => {
+                if (confirm("Hapus?")) {
+                  await fetch(`${API_URL}/admin/functional-roles/${r.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                  fetchAdminMasterData();
+                }
+              }}
               className="text-slate-500 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
