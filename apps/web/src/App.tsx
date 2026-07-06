@@ -49,6 +49,21 @@ const TaskStatus = {
   CANCELLED: 'CANCELLED'
 };
 
+// Brand logo — indoteksaft horizontal lockup (blue mark + wordmark), served
+// from /public with a transparent background. Height-driven, width auto
+// (native ~4.42:1). On the blue brand panel it sits inside a white chip so the
+// dark wordmark stays legible.
+function BrandLogo({ className = 'h-8' }: { className?: string }) {
+  return (
+    <img
+      src="/logo-indoteksaft.png"
+      alt="indoteksaft"
+      className={`${className} w-auto select-none`}
+      draggable={false}
+    />
+  );
+}
+
 // Audited selfie thumbnail (§7, §9 — UU PDP). Uses the presigned-URL endpoint
 // GET /objects/selfie/:attendanceId — bytes stream directly from MinIO via a
 // short-lived signed URL. Own selfies load immediately; viewing another
@@ -105,11 +120,11 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
     }
   };
 
-  const boxClass = 'h-16 w-16 object-cover rounded-lg border border-slate-800 shrink-0';
+  const boxClass = 'h-16 w-16 object-cover rounded-lg border border-slate-200 shrink-0';
 
   if (!attendanceId || !hasSelfie) {
     return (
-      <div className={`${boxClass} bg-slate-900 flex items-center justify-center`}>
+      <div className={`${boxClass} bg-white flex items-center justify-center`}>
         <Camera className="h-5 w-5 text-slate-500" />
       </div>
     );
@@ -119,14 +134,14 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
   }
   if (loading) {
     return (
-      <div className={`${boxClass} bg-slate-900 flex items-center justify-center`}>
-        <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
+      <div className={`${boxClass} bg-white flex items-center justify-center`}>
+        <Loader2 className="h-4 w-4 text-slate-500 animate-spin" />
       </div>
     );
   }
   if (isOwn || error) {
     return (
-      <button type="button" onClick={() => load()} className={`${boxClass} bg-slate-900 flex flex-col items-center justify-center gap-0.5 hover:bg-slate-850`}>
+      <button type="button" onClick={() => load()} className={`${boxClass} bg-white flex flex-col items-center justify-center gap-0.5 hover:bg-slate-100`}>
         <Camera className="h-4 w-4 text-slate-500" />
         <span className="text-[7px] text-slate-500">{error ? 'Coba lagi' : 'Muat'}</span>
       </button>
@@ -137,10 +152,10 @@ function SelfieThumb({ attendanceId, hasSelfie, isOwn, token, alt }: {
       type="button"
       onClick={requestOthers}
       title="Melihat selfie karyawan lain tercatat di audit (UU PDP)"
-      className={`${boxClass} bg-slate-900 flex flex-col items-center justify-center gap-0.5 hover:bg-slate-850`}
+      className={`${boxClass} bg-white flex flex-col items-center justify-center gap-0.5 hover:bg-slate-100`}
     >
-      <ShieldAlert className="h-4 w-4 text-amber-400" />
-      <span className="text-[7px] text-slate-400 leading-tight text-center px-0.5">Lihat selfie</span>
+      <ShieldAlert className="h-4 w-4 text-amber-600" />
+      <span className="text-[7px] text-slate-500 leading-tight text-center px-0.5">Lihat selfie</span>
     </button>
   );
 }
@@ -1894,9 +1909,9 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center bg-slate-955 text-slate-100">
-        <Loader2 className="h-10 w-10 animate-spin text-sky-500" />
-        <p className="mt-4 text-sm text-slate-400">Menghubungkan GPS dan memproses...</p>
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-white text-slate-900">
+        <Loader2 className="h-10 w-10 animate-spin text-sky-600" />
+        <p className="mt-4 text-sm text-slate-500">Menghubungkan GPS dan memproses...</p>
       </div>
     );
   }
@@ -1906,57 +1921,77 @@ export default function App() {
   // -------------------------------------------------------------
   if (!token || !user) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-950 px-4">
-        <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-2xl backdrop-blur-xl">
-          <div className="flex flex-col items-center justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 shadow-lg shadow-sky-500/20">
-              <span className="text-xl font-bold text-white tracking-widest">HW</span>
+      <div className="min-h-dvh w-full flex bg-white">
+        {/* Brand panel (desktop) */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 xl:p-16 text-white relative overflow-hidden bg-gradient-to-br from-sky-600 via-sky-600 to-indigo-700">
+          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-20 -left-16 h-80 w-80 rounded-full bg-indigo-400/20 blur-3xl" />
+          <div className="relative">
+            <div className="inline-flex items-center rounded-xl bg-white px-4 py-3 shadow-sm">
+              <BrandLogo className="h-7" />
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-white tracking-tight">HWMS Indotek</h2>
-            <p className="mt-2 text-sm text-slate-400">Hybrid Work Management System</p>
           </div>
+          <div className="relative max-w-md">
+            <h1 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight">Satu ritual harian,<br />tiga data penting.</h1>
+            <p className="mt-4 text-sky-100/90 text-sm leading-relaxed">
+              Kehadiran, progres tugas, dan performa tim — semuanya mengalir dari satu standup harian. Kelola kerja hybrid dengan rapi dan transparan.
+            </p>
+          </div>
+          <div className="relative text-xs text-sky-100/70">© {new Date().getFullYear()} PT Indotek Buana Karya</div>
+        </div>
 
-          <form className="mt-8 space-y-5" onSubmit={handleLogin}>
-            {errorMsg && (
-              <div className="flex items-start gap-2.5 rounded-lg bg-red-955/50 border border-red-900/50 p-3.5 text-xs text-red-400">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{errorMsg}</span>
+        {/* Form panel */}
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm">
+            <div className="lg:hidden mb-10">
+              <BrandLogo className="h-8" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Masuk ke akun Anda</h2>
+            <p className="mt-1.5 text-sm text-slate-500">Gunakan email perusahaan untuk melanjutkan.</p>
+
+            <form className="mt-8 space-y-5" onSubmit={handleLogin}>
+              {errorMsg && (
+                <div className="flex items-start gap-2.5 rounded-lg bg-red-50 border border-red-200 p-3.5 text-xs text-red-600">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Email Karyawan</label>
+                <input
+                  id="email" type="email" required autoComplete="email"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                  placeholder="nama@indoteksaft.co.id"
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
-            )}
 
-            <div>
-              <label htmlFor="email" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Email Karyawan</label>
-              <input
-                id="email" type="email" required
-                className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white placeholder-slate-600 focus:border-sky-500 focus:outline-none"
-                placeholder="superadmin@indotek.com"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-              />
+              <div>
+                <label htmlFor="pass" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Kata Sandi</label>
+                <input
+                  id="pass" type="password" required autoComplete="current-password"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                  placeholder="••••••••••••"
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit" disabled={loginLoading}
+                className="flex w-full items-center justify-center rounded-lg bg-sky-500 py-3 text-sm font-semibold text-white hover:bg-sky-600 active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {loginLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Masuk'}
+              </button>
+            </form>
+
+            <div className="mt-8 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-500 space-y-1">
+              <span className="font-semibold text-slate-600 block mb-1">Pengguna Seed Uji Coba:</span>
+              <div><span className="text-slate-600">Email:</span> superadmin@indotek.com</div>
+              <div><span className="text-slate-600">Sandi:</span> SuperSecurePassword123</div>
+              <div><span className="text-slate-600">Peran:</span> SUPER_ADMIN</div>
             </div>
-
-            <div>
-              <label htmlFor="pass" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Kata Sandi</label>
-              <input
-                id="pass" type="password" required
-                className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white placeholder-slate-600 focus:border-sky-500 focus:outline-none"
-                placeholder="••••••••••••"
-                value={password} onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit" disabled={loginLoading}
-              className="flex w-full items-center justify-center rounded-lg bg-sky-500 py-3 text-sm font-semibold text-white hover:bg-sky-600 active:scale-[0.98] transition-all disabled:opacity-50"
-            >
-              {loginLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Masuk'}
-            </button>
-          </form>
-
-          <div className="mt-8 rounded-lg bg-slate-955/40 border border-slate-800/40 p-4 text-xs text-slate-400 space-y-1">
-            <span className="font-semibold text-slate-300 block mb-1">Pengguna Seed Uji Coba:</span>
-            <div><span className="text-slate-300">Email:</span> superadmin@indotek.com</div>
-            <div><span className="text-slate-300">Sandi:</span> SuperSecurePassword123</div>
-            <div><span className="text-slate-300">Peran:</span> SUPER_ADMIN</div>
           </div>
         </div>
       </div>
@@ -1974,15 +2009,12 @@ export default function App() {
     ];
 
     return (
-      <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
+      <div className="flex h-screen w-screen bg-slate-50 text-slate-900 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-64 border-r border-slate-800 bg-slate-900 flex flex-col justify-between shrink-0">
+        <aside className="w-64 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0">
           <div>
-            <div className="h-16 px-6 border-b border-slate-800 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600">
-                <span className="text-xs font-bold text-white tracking-widest">HW</span>
-              </div>
-              <span className="font-bold text-base tracking-wide text-white">HWMS Indotek</span>
+            <div className="h-16 px-6 border-b border-slate-200 flex items-center">
+              <BrandLogo className="h-8" />
             </div>
 
             <nav className="mt-6 px-4 space-y-1.5">
@@ -1995,8 +2027,8 @@ export default function App() {
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all group ${
                       isActive 
-                        ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/10' 
-                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                        ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/10' 
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2009,16 +2041,16 @@ export default function App() {
             </nav>
           </div>
 
-          <div className="p-4 border-t border-slate-880">
+          <div className="p-4 border-t border-slate-200">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center font-bold text-sky-400">
+              <div className="h-9 w-9 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center font-bold text-sky-600">
                 SA
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">{user.fullName}</p>
+                <p className="text-xs font-semibold text-slate-900 truncate">{user.fullName}</p>
                 <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
               </div>
-              <button onClick={handleLogout} className="text-slate-400 hover:text-red-400 p-1.5"><LogOut className="h-4 w-4" /></button>
+              <button onClick={handleLogout} className="text-slate-500 hover:text-red-600 p-1.5"><LogOut className="h-4 w-4" /></button>
             </div>
           </div>
         </aside>
@@ -2027,7 +2059,7 @@ export default function App() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Offline Sync Banner */}
           {(!isOnline || offlineCount > 0) && (
-            <div className="bg-amber-500 text-slate-950 text-xs px-6 py-2.5 font-bold flex justify-between items-center shrink-0">
+            <div className="bg-amber-500 text-slate-900 text-xs px-6 py-2.5 font-bold flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2">
                 {isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
                 <span>
@@ -2040,7 +2072,7 @@ export default function App() {
               {isOnline && (
                 <button 
                   onClick={syncOfflineQueue} disabled={syncingOffline}
-                  className="bg-slate-950 text-white rounded px-3 py-1 hover:bg-slate-850 flex items-center gap-1.5 disabled:opacity-50"
+                  className="bg-slate-50 text-slate-900 rounded px-3 py-1 hover:bg-slate-100 flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {syncingOffline ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                   Sinkronkan Sekarang
@@ -2049,18 +2081,18 @@ export default function App() {
             </div>
           )}
 
-          <header className="h-16 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between px-8 shrink-0">
-            <div className="text-slate-400 text-xs flex items-center gap-1.5">
-              <span>Sistem</span> <span>/</span> <span className="text-white font-medium capitalize">{activeTab.replace(/_/g, ' ')}</span>
+          <header className="h-16 border-b border-slate-200 bg-white/50 flex items-center justify-between px-8 shrink-0">
+            <div className="text-slate-500 text-xs flex items-center gap-1.5">
+              <span>Sistem</span> <span>/</span> <span className="text-slate-900 font-medium capitalize">{activeTab.replace(/_/g, ' ')}</span>
             </div>
             <div className="flex items-center gap-6">
-              <span className="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-400 font-semibold border border-slate-700">
+              <span className="text-[10px] px-2 py-1 rounded bg-slate-100 text-slate-500 font-semibold border border-slate-300">
                 {user.timezone}
               </span>
               <div className="relative">
                 <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="relative text-slate-400 hover:text-white focus:outline-none"
+                  className="relative text-slate-500 hover:text-slate-900 focus:outline-none"
                 >
                   <Bell className="h-5 w-5" />
                   {notificationsList.length > 0 && (
@@ -2071,27 +2103,27 @@ export default function App() {
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-3 w-80 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden text-xs">
-                    <div className="p-3 border-b border-slate-800 font-bold text-white flex justify-between items-center bg-slate-950">
+                  <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden text-xs">
+                    <div className="p-3 border-b border-slate-200 font-bold text-slate-900 flex justify-between items-center bg-slate-50">
                       <span>Notifikasi ({notificationsList.length})</span>
-                      <button onClick={() => setNotificationsOpen(false)} className="text-[10px] text-slate-500 hover:text-slate-300">Tutup</button>
+                      <button onClick={() => setNotificationsOpen(false)} className="text-[10px] text-slate-500 hover:text-slate-700">Tutup</button>
                     </div>
-                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-850">
+                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-200">
                       {notificationsList.length === 0 ? (
                         <div className="p-4 text-center text-slate-500 italic">Tidak ada notifikasi.</div>
                       ) : (
                         notificationsList.map((n) => {
                           const payload = n.payload_json || {};
                           return (
-                            <div key={n.id} className="p-3 hover:bg-slate-850/30 space-y-1 text-left">
-                              <div className="font-semibold text-white">{payload.title || 'Pemberitahuan'}</div>
-                              <p className="text-slate-400 text-[11px] leading-relaxed">{payload.message || ''}</p>
+                            <div key={n.id} className="p-3 hover:bg-slate-100/30 space-y-1 text-left">
+                              <div className="font-semibold text-slate-900">{payload.title || 'Pemberitahuan'}</div>
+                              <p className="text-slate-500 text-[11px] leading-relaxed">{payload.message || ''}</p>
                               {payload.fileKey && (
                                 <div className="mt-1.5">
                                   <button
                                     type="button"
                                     onClick={() => downloadReport(payload.fileKey)}
-                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-400 hover:text-sky-300 hover:underline"
+                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-600 hover:text-sky-600 hover:underline"
                                   >
                                     <Download className="h-3 w-3" /> Unduh Laporan (XLSX)
                                   </button>
@@ -2108,15 +2140,15 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <div className="h-8 w-px bg-slate-800"></div>
+              <div className="h-8 w-px bg-slate-100"></div>
               <button
                 type="button"
                 onClick={openProfileView}
                 title="Profil & Keamanan"
-                className="flex items-center gap-3 hover:bg-slate-800/50 rounded-lg px-2 py-1 -mx-1 transition-colors focus:outline-none"
+                className="flex items-center gap-3 hover:bg-slate-200/50 rounded-lg px-2 py-1 -mx-1 transition-colors focus:outline-none"
               >
-                <span className="text-xs font-semibold text-slate-300">{user.fullName}</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                <span className="text-xs font-semibold text-slate-600">{user.fullName}</span>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-600 border border-sky-500/30">
                   {user.roles[0]}
                 </span>
               </button>
@@ -2143,35 +2175,35 @@ export default function App() {
     ];
 
     return (
-      <div className="flex h-screen w-screen flex-col bg-slate-950 text-slate-100 overflow-hidden">
+      <div className="flex h-screen w-screen flex-col bg-slate-50 text-slate-900 overflow-hidden">
         {/* Offline Sync Banner */}
         {(!isOnline || offlineCount > 0) && (
-          <div className="bg-amber-500 text-slate-950 text-[10px] px-4 py-2 font-bold flex justify-between items-center shrink-0">
+          <div className="bg-amber-500 text-slate-900 text-[10px] px-4 py-2 font-bold flex justify-between items-center shrink-0">
             <span className="truncate">
               {isOnline ? `Terhubung. Ada ${offlineCount} data antrean.` : 'Mode Offline Aktif.'}
             </span>
             {isOnline && (
-              <button onClick={syncOfflineQueue} disabled={syncingOffline} className="bg-slate-950 text-white rounded px-2 py-0.5">
+              <button onClick={syncOfflineQueue} disabled={syncingOffline} className="bg-slate-50 text-slate-900 rounded px-2 py-0.5">
                 Sync
               </button>
             )}
           </div>
         )}
 
-        <header className="h-14 border-b border-slate-800 bg-slate-900 px-4 flex items-center justify-between shrink-0">
-          <span className="font-bold text-sm text-white">HWMS Indotek</span>
-          <button onClick={handleLogout} className="text-slate-400 hover:text-red-400"><LogOut className="h-4.5 w-4.5" /></button>
+        <header className="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between shrink-0">
+          <BrandLogo className="h-7" />
+          <button onClick={handleLogout} className="text-slate-500 hover:text-red-600"><LogOut className="h-4.5 w-4.5" /></button>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 pb-20">
           {renderActiveView()}
         </main>
 
-        <nav className="fixed bottom-0 left-0 right-0 h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur flex items-center justify-around z-50">
+        <nav className="fixed bottom-0 left-0 right-0 h-16 border-t border-slate-200 bg-white/90 backdrop-blur flex items-center justify-around z-50">
           {mobileTabs.map(item => (
             <button
               key={item.id} onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-1 py-1 px-3 ${activeTab === item.id ? 'text-sky-500' : 'text-slate-500'}`}
+              className={`flex flex-col items-center gap-1 py-1 px-3 ${activeTab === item.id ? 'text-sky-600' : 'text-slate-500'}`}
             >
               <item.icon className="h-5 w-5" />
               <span className="text-[10px]">{item.label}</span>
@@ -2210,7 +2242,7 @@ export default function App() {
     if (fetchingToday || !todayData) {
       return (
         <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
         </div>
       );
     }
@@ -2221,19 +2253,19 @@ export default function App() {
 
     if (todayData.isOnLeave) {
       return (
-        <div className="max-w-md mx-auto p-8 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-6">
-          <div className="h-16 w-16 bg-sky-500/10 border border-sky-500/30 rounded-full flex items-center justify-center mx-auto text-sky-400">
+        <div className="max-w-md mx-auto p-8 bg-white border border-slate-200 rounded-2xl text-center space-y-6">
+          <div className="h-16 w-16 bg-sky-500/10 border border-sky-500/30 rounded-full flex items-center justify-center mx-auto text-sky-600">
             <Layers className="h-9 w-9" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Sedang Cuti / Izin / Sakit</h2>
-            <p className="text-xs text-slate-400 mt-1.5 font-medium">
-              Tipe: <span className="text-sky-450 uppercase font-bold">{todayData.leaveType}</span>
+            <h2 className="text-lg font-bold text-slate-900">Sedang Cuti / Izin / Sakit</h2>
+            <p className="text-xs text-slate-500 mt-1.5 font-medium">
+              Tipe: <span className="text-sky-600 uppercase font-bold">{todayData.leaveType}</span>
             </p>
             {todayData.leaveReason && (
               <p className="text-[11px] text-slate-500 italic mt-2">"{todayData.leaveReason}"</p>
             )}
-            <p className="text-xs text-emerald-400 mt-4 font-semibold">
+            <p className="text-xs text-emerald-600 mt-4 font-semibold">
               Hari ini Anda dibebaskan dari kewajiban check-in. Selamat beristirahat!
             </p>
           </div>
@@ -2244,32 +2276,32 @@ export default function App() {
     // Cycle 3: Both check-in and check-out completed for today
     if (todayCheckin && checkout) {
       return (
-        <div className="max-w-md mx-auto p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-6">
-          <div className="h-16 w-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+        <div className="max-w-md mx-auto p-6 bg-white border border-slate-200 rounded-2xl text-center space-y-6">
+          <div className="h-16 w-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-600">
             <CheckCircle2 className="h-10 w-10" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Siklus Kerja Hari Ini Selesai</h2>
-            <p className="text-xs text-slate-400 mt-1">Terima kasih atas kerja keras Anda hari ini!</p>
+            <h2 className="text-lg font-bold text-slate-900">Siklus Kerja Hari Ini Selesai</h2>
+            <p className="text-xs text-slate-500 mt-1">Terima kasih atas kerja keras Anda hari ini!</p>
           </div>
 
-          <div className="border-t border-b border-slate-800 py-4 divide-y divide-slate-800 text-xs">
+          <div className="border-t border-b border-slate-200 py-4 divide-y divide-slate-200 text-xs">
             <div className="flex justify-between py-2.5">
-              <span className="text-slate-450">Check-in Pagi</span>
-              <span className="font-semibold text-white">
+              <span className="text-slate-500">Check-in Pagi</span>
+              <span className="font-semibold text-slate-900">
                 {new Date(todayCheckin.device_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                {todayCheckin.is_late && <span className="text-red-500 font-bold ml-1.5">(Terlambat)</span>}
+                {todayCheckin.is_late && <span className="text-red-600 font-bold ml-1.5">(Terlambat)</span>}
               </span>
             </div>
             <div className="flex justify-between py-2.5">
-              <span className="text-slate-450">Check-out Sore</span>
-              <span className="font-semibold text-white">
+              <span className="text-slate-500">Check-out Sore</span>
+              <span className="font-semibold text-slate-900">
                 {new Date(checkout.device_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
             <div className="flex justify-between py-2.5">
-              <span className="text-slate-450">Status Kerja</span>
-              <span className="font-bold text-sky-400 uppercase">{todayCheckin.work_status}</span>
+              <span className="text-slate-500">Status Kerja</span>
+              <span className="font-bold text-sky-600 uppercase">{todayCheckin.work_status}</span>
             </div>
           </div>
         </div>
@@ -2290,21 +2322,21 @@ export default function App() {
       <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-xl font-bold text-white">Feed Aktivitas Tim</h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <h1 className="text-xl font-bold text-slate-900">Feed Aktivitas Tim</h1>
+            <p className="text-xs text-slate-500 mt-1">
               Pantau laporan harian standup tim Anda secara real-time.
             </p>
           </div>
         </div>
 
         {/* Date and Team Filter Header */}
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
+        <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
           <div className="flex flex-wrap gap-3 items-center">
             <Filter className="h-4 w-4 text-slate-500" />
             
             {/* Team Filter Dropdown */}
             <select
-              className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none"
+              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
               value={feedTeamFilter}
               onChange={e => setFeedTeamFilter(e.target.value)}
             >
@@ -2325,7 +2357,7 @@ export default function App() {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                className="bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded px-2.5 py-1.5 text-slate-350"
+                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-2.5 py-1.5 text-slate-600"
                 onClick={() => {
                   const d = new Date(feedDate);
                   d.setDate(d.getDate() - 1);
@@ -2336,13 +2368,13 @@ export default function App() {
               </button>
               <input
                 type="date"
-                className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none font-mono"
+                className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono"
                 value={feedDate}
                 onChange={e => setFeedDate(e.target.value)}
               />
               <button
                 type="button"
-                className="bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded px-2.5 py-1.5 text-slate-350"
+                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-2.5 py-1.5 text-slate-600"
                 onClick={() => {
                   const d = new Date(feedDate);
                   d.setDate(d.getDate() + 1);
@@ -2355,7 +2387,7 @@ export default function App() {
           </div>
           
           {feedData && (
-            <span className="text-[10px] px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold uppercase">
+            <span className="text-[10px] px-2.5 py-1 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 font-bold uppercase">
               {feedData.teamName}
             </span>
           )}
@@ -2363,12 +2395,12 @@ export default function App() {
 
         {fetchingFeed ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
           </div>
         ) : !feedData || feedData.entries.length === 0 ? (
-          <div className="text-center py-20 bg-slate-900/50 border border-slate-805 rounded-xl space-y-3">
-            <Calendar className="h-10 w-10 text-slate-650 mx-auto" />
-            <h4 className="font-bold text-white text-sm">Tidak Ada Entri Standup</h4>
+          <div className="text-center py-20 bg-white/50 border border-slate-200 rounded-xl space-y-3">
+            <Calendar className="h-10 w-10 text-slate-500 mx-auto" />
+            <h4 className="font-bold text-slate-900 text-sm">Tidak Ada Entri Standup</h4>
             <p className="text-xs text-slate-500 max-w-xs mx-auto">
               Belum ada anggota tim yang melakukan check-in pada tanggal ini.
             </p>
@@ -2378,25 +2410,25 @@ export default function App() {
             {feedData.entries.map((entry: any) => (
               <div 
                 key={entry.checkinId}
-                className={`p-6 border rounded-2xl shadow-xl transition-all space-y-5 ${
+                className={`p-6 border rounded-2xl shadow-md transition-all space-y-5 ${
                   entry.hasOpenBlocker 
                     ? 'border-amber-500/30 bg-amber-500/5 shadow-amber-500/5' 
-                    : 'border-slate-800 bg-slate-900'
+                    : 'border-slate-200 bg-white'
                 }`}
               >
                 {/* Entry Header */}
-                <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-slate-805">
+                <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-slate-200">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white">
                       {entry.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-white text-sm">{entry.fullName}</span>
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase font-mono">
+                        <span className="font-bold text-slate-900 text-sm">{entry.fullName}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 uppercase font-mono">
                           {entry.roleCode}
                         </span>
-                        <span className="text-[10px] text-slate-400">({entry.deptName})</span>
+                        <span className="text-[10px] text-slate-500">({entry.deptName})</span>
                       </div>
                       <span className="text-[10px] text-slate-500 block mt-0.5">{entry.email}</span>
                     </div>
@@ -2405,12 +2437,12 @@ export default function App() {
                   <div className="flex items-center gap-2.5 flex-wrap">
                     {/* Flags */}
                     {entry.flags.late && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 uppercase">
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase">
                         Telat
                       </span>
                     )}
                     {entry.flags.auto && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase">
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase">
                         Auto-checkout
                       </span>
                     )}
@@ -2420,13 +2452,13 @@ export default function App() {
                       </span>
                     )}
                     {entry.flags.noEvidence && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-450 border border-rose-500/20 uppercase">
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase">
                         Tanpa Bukti
                       </span>
                     )}
 
                     {/* Status Pill */}
-                    <span className="text-xs font-bold px-3 py-1 rounded-lg bg-slate-950 border border-slate-800 text-sky-400 uppercase font-mono">
+                    <span className="text-xs font-bold px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-sky-600 uppercase font-mono">
                       {entry.workStatus === 'WFO' ? '🏢 WFO' : entry.workStatus === 'WFH' ? '🏠 WFH' : '📍 ONSITE'}
                     </span>
                   </div>
@@ -2435,7 +2467,7 @@ export default function App() {
                 {/* Selfie Images and Times */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Checkin Pagi */}
-                  <div className="flex gap-4 items-center bg-slate-955 p-3.5 border border-slate-850 rounded-xl">
+                  <div className="flex gap-4 items-center bg-white p-3.5 border border-slate-200 rounded-xl">
                     <SelfieThumb
                       attendanceId={entry.checkinId}
                       hasSelfie={!!entry.selfieKey}
@@ -2445,18 +2477,18 @@ export default function App() {
                     />
                     <div>
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Check-in Pagi</span>
-                      <span className="font-bold text-white text-xs block mt-0.5">
+                      <span className="font-bold text-slate-900 text-xs block mt-0.5">
                         {new Date(entry.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {entry.dailyNote && (
-                        <p className="text-[10px] text-slate-400 mt-1 italic">"{entry.dailyNote}"</p>
+                        <p className="text-[10px] text-slate-500 mt-1 italic">"{entry.dailyNote}"</p>
                       )}
                     </div>
                   </div>
 
                   {/* Checkout Sore */}
                   {entry.checkoutTime ? (
-                    <div className="flex gap-4 items-center bg-slate-955 p-3.5 border border-slate-850 rounded-xl">
+                    <div className="flex gap-4 items-center bg-white p-3.5 border border-slate-200 rounded-xl">
                       <SelfieThumb
                         attendanceId={entry.checkoutCheckinId}
                         hasSelfie={!!entry.checkoutSelfieKey}
@@ -2466,16 +2498,16 @@ export default function App() {
                       />
                       <div>
                         <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Check-out Sore</span>
-                        <span className="font-bold text-white text-xs block mt-0.5">
+                        <span className="font-bold text-slate-900 text-xs block mt-0.5">
                           {new Date(entry.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {entry.checkoutDailyNote && (
-                          <p className="text-[10px] text-slate-400 mt-1 italic">"{entry.checkoutDailyNote}"</p>
+                          <p className="text-[10px] text-slate-500 mt-1 italic">"{entry.checkoutDailyNote}"</p>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center border border-dashed border-slate-800 p-3.5 rounded-xl text-xs text-slate-500 italic">
+                    <div className="flex items-center justify-center border border-dashed border-slate-200 p-3.5 rounded-xl text-xs text-slate-500 italic">
                       Belum Check-out Sore
                     </div>
                   )}
@@ -2484,19 +2516,19 @@ export default function App() {
                 {/* Standup Items Tasks */}
                 <div className="space-y-2.5">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tugas Yang Dikerjakan Hari Ini</span>
-                  <div className="space-y-2 border border-slate-850 rounded-xl p-3 bg-slate-955/50">
+                  <div className="space-y-2 border border-slate-200 rounded-xl p-3 bg-white/50">
                     {entry.standupItems.map((item: any) => (
-                      <div key={item.taskId} className="flex justify-between items-center text-xs p-2 rounded bg-slate-900/60 border border-slate-850/60">
+                      <div key={item.taskId} className="flex justify-between items-center text-xs p-2 rounded bg-white/60 border border-slate-200/60">
                         <div className="min-w-0 flex-1 mr-4">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono text-[9px] font-bold text-slate-500">{item.code}</span>
                             {item.isCarryOver && (
-                              <span className="text-[8px] bg-amber-500/15 text-amber-400 border border-amber-500/20 px-1 rounded uppercase font-bold">
+                              <span className="text-[8px] bg-amber-500/15 text-amber-600 border border-amber-500/20 px-1 rounded uppercase font-bold">
                                 Carry-over
                               </span>
                             )}
                           </div>
-                          <span className="font-semibold text-slate-200 mt-0.5 block truncate">{item.title}</span>
+                          <span className="font-semibold text-slate-700 mt-0.5 block truncate">{item.title}</span>
                           {item.plannedNote && (
                             <span className="text-[10px] text-slate-500 italic block mt-0.5">Target pagi: {item.plannedNote}</span>
                           )}
@@ -2505,13 +2537,13 @@ export default function App() {
                         <div className="flex items-center gap-4 shrink-0 text-right font-bold text-[11px]">
                           <div>
                             <span className="text-slate-500 block text-[9px] uppercase font-bold">Progres</span>
-                            <span className="text-white font-mono">
+                            <span className="text-slate-900 font-mono">
                               {item.percentBefore}% {item.percentAfter !== null && item.percentAfter !== undefined ? `→ ${item.percentAfter}%` : ''}
                             </span>
                           </div>
                           <div>
                             <span className="text-slate-500 block text-[9px] uppercase font-bold">Status</span>
-                            <span className="text-sky-400 font-mono uppercase">
+                            <span className="text-sky-600 font-mono uppercase">
                               {(item.statusAfter || item.statusBefore || '').replace(/_/g, ' ')}
                             </span>
                           </div>
@@ -2523,8 +2555,8 @@ export default function App() {
 
                 {/* Open Blockers Warning Panel */}
                 {entry.blockers.length > 0 && (
-                  <div className="p-4 bg-red-950/20 border border-red-900/40 rounded-xl space-y-3">
-                    <span className="flex items-center gap-2 text-xs font-bold text-red-400">
+                  <div className="p-4 bg-red-950/20 border border-red-200/40 rounded-xl space-y-3">
+                    <span className="flex items-center gap-2 text-xs font-bold text-red-600">
                       <AlertTriangle className="h-4 w-4 shrink-0" />
                       <span>Blocker Aktif (Kendala Terbuka)</span>
                     </span>
@@ -2540,9 +2572,9 @@ export default function App() {
                         return (
                           <div key={b.id} className="pt-3 first:pt-0 flex justify-between items-start gap-4">
                             <div className="space-y-1">
-                              <div className="font-semibold text-white">Target Task: <span className="font-mono text-red-400">{b.taskCode}</span> - {b.taskTitle}</div>
-                              <p className="text-slate-350 italic">"{b.description}"</p>
-                              <div className="text-[10px] text-slate-500">Dilaporkan oleh: <span className="text-slate-400">{b.reporterName}</span></div>
+                              <div className="font-semibold text-slate-900">Target Task: <span className="font-mono text-red-600">{b.taskCode}</span> - {b.taskTitle}</div>
+                              <p className="text-slate-600 italic">"{b.description}"</p>
+                              <div className="text-[10px] text-slate-500">Dilaporkan oleh: <span className="text-slate-500">{b.reporterName}</span></div>
                             </div>
 
                             {canResolve && (
@@ -2574,16 +2606,16 @@ export default function App() {
         {/* Header Section */}
         <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Manajemen Cuti & Izin</h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <h1 className="text-xl font-bold text-slate-900">Manajemen Cuti & Izin</h1>
+            <p className="text-xs text-slate-500 mt-1">
               Ajukan permohonan cuti, izin, atau sakit, dan proses persetujuan bawahan langsung.
             </p>
           </div>
           
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-4 text-xs shrink-0">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center gap-4 text-xs shrink-0">
             <div>
               <span className="text-[10px] text-slate-500 block uppercase font-bold">Jatah Cuti Tersisa</span>
-              <span className="text-lg font-bold text-sky-400 mt-0.5 block">{user?.leaveBalance ?? 0} Hari</span>
+              <span className="text-lg font-bold text-sky-600 mt-0.5 block">{user?.leaveBalance ?? 0} Hari</span>
             </div>
             <button
               onClick={() => setLeaveFormOpen(true)}
@@ -2596,11 +2628,11 @@ export default function App() {
         </div>
 
         {/* Sub-tab navigation */}
-        <div className="flex border-b border-slate-800 gap-6 shrink-0 pb-1">
+        <div className="flex border-b border-slate-200 gap-6 shrink-0 pb-1">
           <button
             onClick={() => setLeaveSubTab('my')}
             className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-              leaveSubTab === 'my' ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-500 hover:text-slate-350'
+              leaveSubTab === 'my' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             Pengajuan Saya ({leaveRequests.length})
@@ -2608,7 +2640,7 @@ export default function App() {
           <button
             onClick={() => setLeaveSubTab('approvals')}
             className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all flex items-center gap-1.5 ${
-              leaveSubTab === 'approvals' ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-500 hover:text-slate-350'
+              leaveSubTab === 'approvals' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             <span>Kotak Masuk Persetujuan</span>
@@ -2623,17 +2655,17 @@ export default function App() {
         {/* View Router */}
         {leaveSubTab === 'my' ? (
           /* MY LEAVE REQUESTS LIST */
-          <div className="overflow-x-auto rounded-xl border border-slate-805 bg-slate-900/40">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900/60">
+                <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/60">
                   <th className="px-6 py-3">Tipe / Alasan</th>
                   <th className="px-6 py-3">Rentang Tanggal / Jumlah</th>
                   <th className="px-6 py-3">Status / Keputusan</th>
                   <th className="px-6 py-3 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-850 text-slate-300">
+              <tbody className="divide-y divide-slate-200 text-slate-600">
                 {leaveRequests.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-10 text-center text-slate-500 italic">
@@ -2642,16 +2674,16 @@ export default function App() {
                   </tr>
                 ) : (
                   leaveRequests.map(r => (
-                    <tr key={r.id} className="hover:bg-slate-900/30">
+                    <tr key={r.id} className="hover:bg-slate-50/30">
                       <td className="px-6 py-4">
                         <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
-                          r.type === 'SAKIT' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                          r.type === 'CUTI' ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' :
-                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          r.type === 'SAKIT' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                          r.type === 'CUTI' ? 'bg-sky-500/10 text-sky-600 border-sky-500/20' :
+                          'bg-amber-500/10 text-amber-600 border-amber-500/20'
                         }`}>
                           {r.type}
                         </span>
-                        <div className="font-semibold text-white mt-1.5">{r.reason}</div>
+                        <div className="font-semibold text-slate-900 mt-1.5">{r.reason}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div>{new Date(r.date_from).toLocaleDateString()} s/d {new Date(r.date_to).toLocaleDateString()}</div>
@@ -2661,22 +2693,22 @@ export default function App() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase ${
-                          r.status === 'APPROVED' || r.status === 'AUTO_APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                          r.status === 'REJECTED' ? 'bg-red-500/10 text-red-450 border-red-500/20' :
-                          r.status === 'CANCELLED' ? 'bg-slate-800 text-slate-400 border-slate-700' :
-                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          r.status === 'APPROVED' || r.status === 'AUTO_APPROVED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                          r.status === 'REJECTED' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                          r.status === 'CANCELLED' ? 'bg-slate-100 text-slate-500 border-slate-300' :
+                          'bg-amber-500/10 text-amber-600 border-amber-500/20'
                         }`}>
                           {r.status.replace(/_/g, ' ')}
                         </span>
                         {r.decision_note && (
-                          <div className="text-[10px] text-slate-450 mt-1 italic">Note: "{r.decision_note}"</div>
+                          <div className="text-[10px] text-slate-500 mt-1 italic">Note: "{r.decision_note}"</div>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         {r.status !== 'CANCELLED' && r.status !== 'REJECTED' && (
                           <button
                             onClick={() => handleCancelLeave(r.id)}
-                            className="bg-slate-800 hover:bg-slate-750 text-red-400 hover:text-red-300 font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-slate-700"
+                            className="bg-slate-100 hover:bg-slate-200 text-red-600 hover:text-red-600 font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg border border-slate-300"
                           >
                             Batalkan
                           </button>
@@ -2690,10 +2722,10 @@ export default function App() {
           </div>
         ) : (
           /* APPROVAL INBOX LIST */
-          <div className="overflow-x-auto rounded-xl border border-slate-805 bg-slate-900/40">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900/60">
+                <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/60">
                   <th className="px-6 py-3">Pemohon / Saldo Cuti</th>
                   <th className="px-6 py-3">Tipe / Alasan</th>
                   <th className="px-6 py-3">Rentang Tanggal / Jumlah</th>
@@ -2701,7 +2733,7 @@ export default function App() {
                   <th className="px-6 py-3 text-right">Keputusan</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-850 text-slate-300">
+              <tbody className="divide-y divide-slate-200 text-slate-600">
                 {approvalsInbox.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-10 text-center text-slate-500 italic">
@@ -2712,21 +2744,21 @@ export default function App() {
                   approvalsInbox.map(r => {
                     const days = Math.ceil((new Date(r.date_to).getTime() - new Date(r.date_from).getTime()) / (1000 * 60 * 60 * 24)) + 1;
                     return (
-                      <tr key={r.id} className="hover:bg-slate-900/30">
+                      <tr key={r.id} className="hover:bg-slate-50/30">
                         <td className="px-6 py-4">
-                          <div className="font-semibold text-white">{r.requester?.full_name}</div>
+                          <div className="font-semibold text-slate-900">{r.requester?.full_name}</div>
                           <div className="text-[10px] text-slate-500">{r.requester?.email}</div>
-                          <div className="text-[10px] text-sky-400 mt-1 font-bold">Saldo: {r.requester?.leave_balance} Hari</div>
+                          <div className="text-[10px] text-sky-600 mt-1 font-bold">Saldo: {r.requester?.leave_balance} Hari</div>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
-                            r.type === 'SAKIT' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                            r.type === 'CUTI' ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' :
-                            'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            r.type === 'SAKIT' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                            r.type === 'CUTI' ? 'bg-sky-500/10 text-sky-600 border-sky-500/20' :
+                            'bg-amber-500/10 text-amber-600 border-amber-500/20'
                           }`}>
                             {r.type}
                           </span>
-                          <div className="font-semibold text-white mt-1.5">{r.reason}</div>
+                          <div className="font-semibold text-slate-900 mt-1.5">{r.reason}</div>
                         </td>
                         <td className="px-6 py-4">
                           <div>{new Date(r.date_from).toLocaleDateString()} s/d {new Date(r.date_to).toLocaleDateString()}</div>
@@ -2738,7 +2770,7 @@ export default function App() {
                               href={`http://localhost:3000/api/v1/leaves/attachments/${r.attachment_key}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-sky-400 hover:underline font-bold text-[11px]"
+                              className="text-sky-600 hover:underline font-bold text-[11px]"
                             >
                               Lihat Lampiran
                             </a>
@@ -2773,11 +2805,11 @@ export default function App() {
 
         {/* APPLY LEAVE REQUEST MODAL */}
         {leaveFormOpen && (
-          <div className="fixed inset-0 bg-slate-955/85 backdrop-blur flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-md bg-slate-900 border border-slate-805 rounded-2xl shadow-2xl overflow-hidden">
-              <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white">Ajukan Permohonan Cuti/Izin/Sakit</h3>
-                <button onClick={() => setLeaveFormOpen(false)} className="text-slate-405 hover:text-white"><X className="h-5 w-5" /></button>
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+            <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900">Ajukan Permohonan Cuti/Izin/Sakit</h3>
+                <button onClick={() => setLeaveFormOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
               </div>
 
               <form onSubmit={handleApplyLeave}>
@@ -2785,7 +2817,7 @@ export default function App() {
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tipe Pengajuan</label>
                     <select
-                      className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                      className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                       value={leaveForm.type}
                       onChange={e => setLeaveForm({ ...leaveForm, type: e.target.value })}
                     >
@@ -2800,7 +2832,7 @@ export default function App() {
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
                       <input
                         type="date" required
-                        className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none font-mono"
+                        className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={leaveForm.dateFromStr}
                         onChange={e => setLeaveForm({ ...leaveForm, dateFromStr: e.target.value })}
                       />
@@ -2809,7 +2841,7 @@ export default function App() {
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Selesai</label>
                       <input
                         type="date" required
-                        className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none font-mono"
+                        className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={leaveForm.dateToStr}
                         onChange={e => setLeaveForm({ ...leaveForm, dateToStr: e.target.value })}
                       />
@@ -2819,14 +2851,14 @@ export default function App() {
                   {/* Attachment input (Mandatory for SAKIT) */}
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Lampiran Surat Keterangan Dokter {leaveForm.type === 'SAKIT' && <span className="text-red-500 font-bold">*</span>}
+                      Lampiran Surat Keterangan Dokter {leaveForm.type === 'SAKIT' && <span className="text-red-600 font-bold">*</span>}
                     </label>
                     <input
                       type="file"
                       ref={leaveAttachmentInputRef}
                       required={leaveForm.type === 'SAKIT'}
                       accept=".pdf,.png,.jpg,.jpeg"
-                      className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2 text-xs text-white focus:outline-none"
+                      className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 focus:outline-none"
                       onChange={e => {
                         const file = e.target.files?.[0] || null;
                         setLeaveAttachment(file);
@@ -2839,7 +2871,7 @@ export default function App() {
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Alasan Pengajuan</label>
                     <textarea
                       required rows={2.5}
-                      className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2 text-xs text-white focus:outline-none placeholder-slate-750"
+                      className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none placeholder-slate-750"
                       placeholder="Tuliskan keterangan detail alasan cuti/izin..."
                       value={leaveForm.reason}
                       onChange={e => setLeaveForm({ ...leaveForm, reason: e.target.value })}
@@ -2847,14 +2879,14 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+                <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
                   <button
                     type="submit" disabled={submittingLeave}
                     className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5"
                   >
                     {submittingLeave ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Kirim Pengajuan'}
                   </button>
-                  <button type="button" onClick={() => setLeaveFormOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+                  <button type="button" onClick={() => setLeaveFormOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
                 </div>
               </form>
             </div>
@@ -2875,8 +2907,8 @@ export default function App() {
       <div className="space-y-6">
         <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Dashboard Analitik</h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <h1 className="text-xl font-bold text-slate-900">Dashboard Analitik</h1>
+            <p className="text-xs text-slate-500 mt-1">
               Pantau kinerja proyek, anomali absensi, dan progres sprint tim.
             </p>
           </div>
@@ -2899,11 +2931,11 @@ export default function App() {
 
         {/* Dashboard Sub-tabs */}
         {isManager && isCTOorPM && (
-          <div className="flex border-b border-slate-800 gap-6 shrink-0 pb-1">
+          <div className="flex border-b border-slate-200 gap-6 shrink-0 pb-1">
             <button
               onClick={() => setDashboardSubTab('team')}
               className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                dashboardSubTab === 'team' ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-500 hover:text-slate-350'
+                dashboardSubTab === 'team' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               Dashboard Kehadiran Tim
@@ -2911,7 +2943,7 @@ export default function App() {
             <button
               onClick={() => setDashboardSubTab('program')}
               className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                dashboardSubTab === 'program' ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-500 hover:text-slate-350'
+                dashboardSubTab === 'program' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               Dashboard Program & Sprint (CTO)
@@ -2921,7 +2953,7 @@ export default function App() {
 
         {fetchingDashboard ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
           </div>
         ) : !dashboardData ? (
           <div className="text-center py-20 text-slate-500 italic">Gagal memuat data dashboard.</div>
@@ -2929,22 +2961,22 @@ export default function App() {
           /* Data shape belongs to the team endpoint but the program layout is
              active (in-flight sub-tab switch) — show loader instead of crashing. */
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
           </div>
         ) : currentSubTab === 'team' && !dashboardData.attendanceList ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
           </div>
         ) : currentSubTab === 'team' ? (
           /* TEAM ATTENDANCE DASHBOARD */
           <div className="space-y-6">
             {/* Filters */}
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
+            <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
               <div className="flex flex-wrap gap-3 items-center">
                 <Filter className="h-4 w-4 text-slate-500" />
                 
                 <select
-                  className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none"
+                  className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
                   value={dashboardTeamFilter}
                   onChange={e => setDashboardTeamFilter(e.target.value)}
                 >
@@ -2964,14 +2996,14 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <input
                     type="date"
-                    className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none font-mono"
+                    className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono"
                     value={dashboardDateFrom}
                     onChange={e => setDashboardDateFrom(e.target.value)}
                   />
                   <span className="text-slate-500 font-bold">s/d</span>
                   <input
                     type="date"
-                    className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none font-mono"
+                    className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none font-mono"
                     value={dashboardDateTo}
                     onChange={e => setDashboardDateTo(e.target.value)}
                   />
@@ -2979,7 +3011,7 @@ export default function App() {
               </div>
 
               {dashboardData.anomaliesCount > 0 && (
-                <span className="text-[10px] px-2.5 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-bold uppercase">
+                <span className="text-[10px] px-2.5 py-1 rounded bg-red-500/10 text-red-600 border border-red-500/20 font-bold uppercase">
                   ⚠️ {dashboardData.anomaliesCount} Anomali Terdeteksi
                 </span>
               )}
@@ -2987,11 +3019,11 @@ export default function App() {
 
             {/* Attendance list Grid */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-white">Log Kehadiran & Standup ({dashboardData.attendanceList.length} Baris)</h3>
-              <div className="overflow-x-auto rounded-xl border border-slate-805 bg-slate-900/40">
+              <h3 className="text-sm font-bold text-slate-900">Log Kehadiran & Standup ({dashboardData.attendanceList.length} Baris)</h3>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900/60">
+                    <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/60">
                       <th className="px-6 py-3">Nama Karyawan</th>
                       <th className="px-6 py-3">Tanggal / Status</th>
                       <th className="px-6 py-3">Check-in Pagi</th>
@@ -3000,7 +3032,7 @@ export default function App() {
                       <th className="px-6 py-3 text-right">Bendera Kepatuhan</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-850 text-slate-350">
+                  <tbody className="divide-y divide-slate-200 text-slate-600">
                     {dashboardData.attendanceList.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-10 text-center text-slate-500 italic">
@@ -3009,33 +3041,33 @@ export default function App() {
                       </tr>
                     ) : (
                       dashboardData.attendanceList.map((a: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-slate-900/30">
+                        <tr key={idx} className="hover:bg-slate-50/30">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-white">{a.user.fullName}</div>
+                            <div className="font-semibold text-slate-900">{a.user.fullName}</div>
                             <div className="text-[10px] text-slate-500">{a.user.roleCode} ({a.user.deptName})</div>
                           </td>
                           <td className="px-6 py-4">
                             <div>{new Date(a.date).toLocaleDateString()}</div>
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-950 text-sky-400 border border-slate-800 uppercase font-mono mt-1 inline-block">
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-50 text-sky-600 border border-slate-200 uppercase font-mono mt-1 inline-block">
                               {a.workStatus}
                             </span>
                           </td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-300">
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-600">
                             {a.checkinTime ? new Date(a.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                           </td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-300">
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-600">
                             {a.checkoutTime ? new Date(a.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                           </td>
-                          <td className="px-6 py-4 font-semibold text-slate-300">{a.tasksCount} Tasks</td>
+                          <td className="px-6 py-4 font-semibold text-slate-600">{a.tasksCount} Tasks</td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex flex-wrap justify-end gap-1.5">
                               {a.flags.late && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-400 border border-red-500/20 uppercase font-mono">
+                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase font-mono">
                                   Telat
                                 </span>
                               )}
                               {a.flags.auto && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase font-mono">
+                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase font-mono">
                                   Auto
                                 </span>
                               )}
@@ -3045,17 +3077,17 @@ export default function App() {
                                 </span>
                               )}
                               {!a.flags.geofence_ok && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-450 border border-rose-500/20 uppercase font-mono">
+                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase font-mono">
                                   GPS Gagal
                                 </span>
                               )}
                               {a.flags.noEvidence && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-500 border border-red-500/20 uppercase font-mono">
+                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 border border-red-500/20 uppercase font-mono">
                                   Evidence Hilang
                                 </span>
                               )}
                               {!a.flags.late && !a.flags.auto && !a.flags.offline && a.flags.geofence_ok && !a.flags.noEvidence && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-mono">
+                                <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase font-mono">
                                   Patuh
                                 </span>
                               )}
@@ -3072,11 +3104,11 @@ export default function App() {
             {/* Blocker Aging lists */}
             <div className="grid grid-cols-1 gap-6">
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-white">Blocker Aktif Terbuka (Aging Terlama)</h3>
-                <div className="overflow-x-auto rounded-xl border border-slate-805 bg-slate-900/40">
+                <h3 className="text-sm font-bold text-slate-900">Blocker Aktif Terbuka (Aging Terlama)</h3>
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900/60">
+                      <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/60">
                         <th className="px-6 py-3">Task Code</th>
                         <th className="px-6 py-3">Judul Task</th>
                         <th className="px-6 py-3">Deskripsi Hambatan</th>
@@ -3084,7 +3116,7 @@ export default function App() {
                         <th className="px-6 py-3">Umur Blocker</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-850 text-slate-350">
+                    <tbody className="divide-y divide-slate-200 text-slate-600">
                       {dashboardData.blockerAging.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="px-6 py-10 text-center text-slate-500 italic">
@@ -3093,14 +3125,14 @@ export default function App() {
                         </tr>
                       ) : (
                         dashboardData.blockerAging.map((b: any) => (
-                          <tr key={b.id} className="hover:bg-slate-900/30">
-                            <td className="px-6 py-4 font-mono font-bold text-red-400">{b.taskCode}</td>
+                          <tr key={b.id} className="hover:bg-slate-50/30">
+                            <td className="px-6 py-4 font-mono font-bold text-red-600">{b.taskCode}</td>
                             <td className="px-6 py-4 font-semibold text-slate-205">{b.taskTitle}</td>
-                            <td className="px-6 py-4 italic text-slate-300">"{b.description}"</td>
-                            <td className="px-6 py-4 font-semibold text-white">{b.reporterName}</td>
+                            <td className="px-6 py-4 italic text-slate-600">"{b.description}"</td>
+                            <td className="px-6 py-4 font-semibold text-slate-900">{b.reporterName}</td>
                             <td className="px-6 py-4">
                               <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                b.daysOpen >= 3 ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-slate-800 text-slate-300'
+                                b.daysOpen >= 3 ? 'bg-red-500/20 text-red-600 border border-red-500/30 animate-pulse' : 'bg-slate-100 text-slate-600'
                               }`}>
                                 {b.daysOpen} Hari
                               </span>
@@ -3119,34 +3151,34 @@ export default function App() {
           <div className="space-y-6">
             {/* Metric Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Karyawan Hadir Hari Ini</span>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-2xl font-bold text-white font-mono">{dashboardData.metrics.totalHadir} Orang</span>
-                  <span className="text-[10px] text-slate-400 font-medium">
+                  <span className="text-2xl font-bold text-slate-900 font-mono">{dashboardData.metrics.totalHadir} Orang</span>
+                  <span className="text-[10px] text-slate-500 font-medium">
                     ({dashboardData.metrics.wfoCount} WFO / {dashboardData.metrics.wfhCount} WFH / {dashboardData.metrics.onsiteCount} Onsite)
                   </span>
                 </div>
               </div>
               
-              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Blocker Aktif Terbuka</span>
                 <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-red-400 font-mono">{dashboardData.metrics.openBlockersCount} Blocker</span>
+                  <span className="text-2xl font-bold text-red-600 font-mono">{dashboardData.metrics.openBlockersCount} Blocker</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Total Hari Ini Anomali</span>
                 <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-amber-500 font-mono">{dashboardData.metrics.anomaliesCount} Kasus</span>
+                  <span className="text-2xl font-bold text-amber-600 font-mono">{dashboardData.metrics.anomaliesCount} Kasus</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Health Index Standup</span>
                 <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-emerald-400 font-mono">
+                  <span className="text-2xl font-bold text-emerald-600 font-mono">
                     {dashboardData.metrics.totalHadir > 0 
                       ? Math.round(((dashboardData.metrics.totalHadir - dashboardData.metrics.anomaliesCount) / dashboardData.metrics.totalHadir) * 100)
                       : 100}%
@@ -3157,20 +3189,20 @@ export default function App() {
 
             {/* Sprint Completion RAG status */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-slate-900/60 border border-slate-805 p-6 rounded-2xl space-y-4">
-                <h3 className="text-sm font-bold text-white">Progres Penyelesaian Sprint (Weighted)</h3>
+              <div className="bg-white/60 border border-slate-200 p-6 rounded-2xl space-y-4">
+                <h3 className="text-sm font-bold text-slate-900">Progres Penyelesaian Sprint (Weighted)</h3>
                 <div className="space-y-4">
                   {dashboardData.sprintMetrics.length === 0 ? (
                     <p className="text-xs text-slate-500 italic">Belum ada Sprint terdaftar.</p>
                   ) : (
                     dashboardData.sprintMetrics.map((s: any) => (
                       <div key={s.id} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-semibold text-slate-300">
-                          <span>{s.projectName} - <span className="font-bold text-white">{s.name}</span></span>
+                        <div className="flex justify-between text-xs font-semibold text-slate-600">
+                          <span>{s.projectName} - <span className="font-bold text-slate-900">{s.name}</span></span>
                           <span className="font-mono">{s.progress}%</span>
                         </div>
                         {/* Progress Bar with RAG Colors */}
-                        <div className="w-full h-3 bg-slate-950 rounded-full border border-slate-850 overflow-hidden flex">
+                        <div className="w-full h-3 bg-slate-50 rounded-full border border-slate-200 overflow-hidden flex">
                           <div 
                             className={`h-full transition-all rounded-full ${
                               s.rag === 'GREEN' ? 'bg-emerald-500 shadow shadow-emerald-500/20' :
@@ -3184,9 +3216,9 @@ export default function App() {
                         <div className="flex justify-between text-[9px] text-slate-500">
                           <span>Target: {new Date(s.endDate).toLocaleDateString()}</span>
                           <span className={`font-bold ${
-                            s.rag === 'GREEN' ? 'text-emerald-400' :
-                            s.rag === 'YELLOW' ? 'text-amber-400' :
-                            s.rag === 'RED' ? 'text-red-400' : 'text-red-500 font-extrabold animate-pulse'
+                            s.rag === 'GREEN' ? 'text-emerald-600' :
+                            s.rag === 'YELLOW' ? 'text-amber-600' :
+                            s.rag === 'RED' ? 'text-red-600' : 'text-red-600 font-extrabold animate-pulse'
                           }`}>
                             {s.rag} STATUS
                           </span>
@@ -3198,19 +3230,19 @@ export default function App() {
               </div>
 
               {/* Functional Role Completion RAG status */}
-              <div className="bg-slate-900/60 border border-slate-805 p-6 rounded-2xl space-y-4">
-                <h3 className="text-sm font-bold text-white">Penyelesaian Aktif Per Peran Fungsional</h3>
+              <div className="bg-white/60 border border-slate-200 p-6 rounded-2xl space-y-4">
+                <h3 className="text-sm font-bold text-slate-900">Penyelesaian Aktif Per Peran Fungsional</h3>
                 <div className="space-y-4">
                   {dashboardData.roleMetrics.length === 0 ? (
                     <p className="text-xs text-slate-500 italic">Tidak ada tugas aktif dalam sprint saat ini.</p>
                   ) : (
                     dashboardData.roleMetrics.map((r: any) => (
                       <div key={r.code} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-semibold text-slate-350">
+                        <div className="flex justify-between text-xs font-semibold text-slate-600">
                           <span>{r.name} ({r.code})</span>
-                          <span className="font-mono text-white">{r.progress}%</span>
+                          <span className="font-mono text-slate-900">{r.progress}%</span>
                         </div>
-                        <div className="w-full h-2.5 bg-slate-950 rounded-full border border-slate-850 overflow-hidden">
+                        <div className="w-full h-2.5 bg-slate-50 rounded-full border border-slate-200 overflow-hidden">
                           <div 
                             className={`h-full transition-all rounded-full ${
                               r.rag === 'GREEN' ? 'bg-emerald-500' :
@@ -3227,15 +3259,15 @@ export default function App() {
             </div>
 
             {/* Task Status Distribution */}
-            <div className="bg-slate-900/60 border border-slate-805 p-6 rounded-2xl space-y-4">
-              <h3 className="text-sm font-bold text-white">Sebaran Distribusi Status Tugas</h3>
+            <div className="bg-white/60 border border-slate-200 p-6 rounded-2xl space-y-4">
+              <h3 className="text-sm font-bold text-slate-900">Sebaran Distribusi Status Tugas</h3>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {dashboardData.statusDistribution.map((sd: any, idx: number) => (
-                  <div key={idx} className="bg-slate-950 border border-slate-850 p-4 rounded-xl text-center space-y-1">
+                  <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center space-y-1">
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">
                       {sd.status.replace(/_/g, ' ')}
                     </span>
-                    <span className="text-xl font-bold text-white font-mono">{sd.count} Tasks</span>
+                    <span className="text-xl font-bold text-slate-900 font-mono">{sd.count} Tasks</span>
                   </div>
                 ))}
               </div>
@@ -3245,29 +3277,29 @@ export default function App() {
 
         {/* ONBOARDING PWA POPUP */}
         {onboardingOpen && (
-          <div className="fixed inset-0 bg-slate-955/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-lg bg-slate-900 border border-slate-805 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-              <div className="p-6 border-b border-slate-850 shrink-0">
-                <h2 className="text-base font-bold text-white">🚀 Selamat Datang di HWMS Indotek PWA Onboarding</h2>
-                <p className="text-xs text-slate-400 mt-1">Selesaikan setup perangkat Anda agar sistem absensi berjalan optimal.</p>
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 border-b border-slate-200 shrink-0">
+                <h2 className="text-base font-bold text-slate-900">🚀 Selamat Datang di HWMS Indotek PWA Onboarding</h2>
+                <p className="text-xs text-slate-500 mt-1">Selesaikan setup perangkat Anda agar sistem absensi berjalan optimal.</p>
               </div>
 
               <div className="p-6 space-y-6 overflow-y-auto flex-1 text-xs">
                 {/* 1. Add to Home Screen Instructions */}
-                <div className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-2">
-                  <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">Langkah 1: Tambah ke Layar Utama (Instal PWA)</span>
-                  <div className="space-y-1 text-slate-300">
-                    <p className="font-semibold text-white">📱 Untuk Perangkat iOS (iPhone/Safari):</p>
-                    <p className="pl-4">Ketuk tombol <span className="font-bold text-white">Bagikan (Share icon)</span> di bagian bawah Safari → Pilih <span className="font-bold text-white">'Tambah ke Layar Utama' (Add to Home Screen)</span>.</p>
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                  <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">Langkah 1: Tambah ke Layar Utama (Instal PWA)</span>
+                  <div className="space-y-1 text-slate-600">
+                    <p className="font-semibold text-slate-900">📱 Untuk Perangkat iOS (iPhone/Safari):</p>
+                    <p className="pl-4">Ketuk tombol <span className="font-bold text-slate-900">Bagikan (Share icon)</span> di bagian bawah Safari → Pilih <span className="font-bold text-slate-900">'Tambah ke Layar Utama' (Add to Home Screen)</span>.</p>
                     
-                    <p className="font-semibold text-white mt-3">🤖 Untuk Perangkat Android (Chrome):</p>
-                    <p className="pl-4">Ketuk tombol menu <span className="font-bold text-white">tiga titik</span> di pojok kanan atas → Pilih <span className="font-bold text-white">'Instal Aplikasi'</span> atau <span className="font-bold text-white">'Tambahkan ke Layar Utama'</span>.</p>
+                    <p className="font-semibold text-slate-900 mt-3">🤖 Untuk Perangkat Android (Chrome):</p>
+                    <p className="pl-4">Ketuk tombol menu <span className="font-bold text-slate-900">tiga titik</span> di pojok kanan atas → Pilih <span className="font-bold text-slate-900">'Instal Aplikasi'</span> atau <span className="font-bold text-slate-900">'Tambahkan ke Layar Utama'</span>.</p>
                   </div>
                 </div>
 
                 {/* 2. Permission Triggers */}
                 <div className="space-y-3">
-                  <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">Langkah 2: Izin Perangkat</span>
+                  <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">Langkah 2: Izin Perangkat</span>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
@@ -3276,7 +3308,7 @@ export default function App() {
                         const perm = await Notification.requestPermission();
                         alert(perm === 'granted' ? 'Izin notifikasi disetujui!' : 'Izin notifikasi ditolak.');
                       }}
-                      className="p-3 bg-slate-950 border border-slate-850 hover:bg-slate-900 rounded-xl text-center font-bold text-slate-200"
+                      className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-50 rounded-xl text-center font-bold text-slate-700"
                     >
                       🔔 Izin Notifikasi
                     </button>
@@ -3292,7 +3324,7 @@ export default function App() {
                           alert('Gagal mengakses kamera. Silakan periksa izin browser.');
                         }
                       }}
-                      className="p-3 bg-slate-950 border border-slate-850 hover:bg-slate-900 rounded-xl text-center font-bold text-slate-200"
+                      className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-50 rounded-xl text-center font-bold text-slate-700"
                     >
                       📷 Tes Kamera Selfie
                     </button>
@@ -3305,7 +3337,7 @@ export default function App() {
                           () => alert('Gagal mengakses lokasi. Silakan aktifkan GPS perangkat.')
                         );
                       }}
-                      className="p-3 bg-slate-950 border border-slate-850 hover:bg-slate-900 rounded-xl text-center font-bold text-slate-200"
+                      className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-50 rounded-xl text-center font-bold text-slate-700"
                     >
                       📍 Tes GPS Lokasi
                     </button>
@@ -3313,13 +3345,13 @@ export default function App() {
                 </div>
 
                 {/* 3. Privacy Policy Principle */}
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 rounded-xl">
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-xl">
                   <span className="font-bold block mb-1">🔒 Prinsip Komitmen Privasi</span>
-                  Kamera dan GPS hanya diakses saat Anda mengonfirmasi Check-in atau Check-out absensi mandiri. Koordinat GPS Anda dianalisis secara lokal di browser dan backend untuk keperluan validasi WFO/ONSITE dan <span className="font-semibold text-white">tidak pernah dilacak di latar belakang secara diam-diam.</span>
+                  Kamera dan GPS hanya diakses saat Anda mengonfirmasi Check-in atau Check-out absensi mandiri. Koordinat GPS Anda dianalisis secara lokal di browser dan backend untuk keperluan validasi WFO/ONSITE dan <span className="font-semibold text-slate-900">tidak pernah dilacak di latar belakang secara diam-diam.</span>
                 </div>
               </div>
 
-              <div className="p-6 border-t border-slate-850 flex justify-end bg-slate-900/60 shrink-0">
+              <div className="p-6 border-t border-slate-200 flex justify-end bg-white/60 shrink-0">
                 <button
                   type="button"
                   onClick={handleOnboardingComplete}
@@ -3334,11 +3366,11 @@ export default function App() {
 
         {/* HR PAYROLL ATTENDANCE EXPORT MODAL */}
         {exportModalOpen && (
-          <div className="fixed inset-0 bg-slate-955/85 backdrop-blur flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-md bg-slate-900 border border-slate-805 rounded-2xl shadow-2xl overflow-hidden">
-              <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white">Ekspor Laporan Absensi (Payroll)</h3>
-                <button onClick={() => setExportModalOpen(false)} className="text-slate-405 hover:text-white"><X className="h-5 w-5" /></button>
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+            <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900">Ekspor Laporan Absensi (Payroll)</h3>
+                <button onClick={() => setExportModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
               </div>
 
               <form onSubmit={handleTriggerExport}>
@@ -3348,7 +3380,7 @@ export default function App() {
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
                       <input
                         type="date" required
-                        className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none font-mono"
+                        className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={exportDateFrom}
                         onChange={e => setExportDateFrom(e.target.value)}
                       />
@@ -3357,7 +3389,7 @@ export default function App() {
                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Selesai</label>
                       <input
                         type="date" required
-                        className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none font-mono"
+                        className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none font-mono"
                         value={exportDateTo}
                         onChange={e => setExportDateTo(e.target.value)}
                       />
@@ -3368,14 +3400,14 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+                <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
                   <button
                     type="submit" disabled={submittingExport}
                     className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5"
                   >
                     {submittingExport ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Ekspor Laporan'}
                   </button>
-                  <button type="button" onClick={() => setExportModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+                  <button type="button" onClick={() => setExportModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
                 </div>
               </form>
             </div>
@@ -3390,13 +3422,13 @@ export default function App() {
     const allTasks = [...carryOverTasks.map(t => ({ ...t, isCarryOver: true })), ...activeSprintTasks.map(t => ({ ...t, isCarryOver: false }))];
 
     return (
-      <form onSubmit={handleCheckinSubmit} className="max-w-xl mx-auto space-y-6 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <form onSubmit={handleCheckinSubmit} className="max-w-xl mx-auto space-y-6 bg-white border border-slate-200 p-6 rounded-2xl">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-bold text-white">Check-in Kehadiran & Standup</h2>
-            <p className="text-xs text-slate-400 mt-1">Mulai aktivitas kerja harian Anda.</p>
+            <h2 className="text-lg font-bold text-slate-900">Check-in Kehadiran & Standup</h2>
+            <p className="text-xs text-slate-500 mt-1">Mulai aktivitas kerja harian Anda.</p>
           </div>
-          <span className="text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+          <span className="text-[10px] font-bold bg-amber-500/15 text-amber-600 border border-amber-500/20 px-2.5 py-1 rounded-lg">
             IN SESSION
           </span>
         </div>
@@ -3411,8 +3443,8 @@ export default function App() {
                 onClick={() => setCheckinWorkStatus(ws)}
                 className={`py-3 rounded-lg text-xs font-bold border transition-all ${
                   checkinWorkStatus === ws 
-                    ? 'bg-sky-500 border-sky-500 text-white shadow-lg shadow-sky-500/10' 
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 border-sky-500 text-white shadow-sm shadow-sky-500/10' 
+                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-900'
                 }`}
               >
                 {ws === 'WFO' ? '🏢 WFO' : ws === 'WFH' ? '🏠 WFH' : '📍 ONSITE'}
@@ -3427,7 +3459,7 @@ export default function App() {
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Project Klien ONSITE (Wajib)</label>
             <select
               required
-              className="w-full rounded-lg border border-slate-800 bg-slate-955 px-3.5 py-3 text-xs text-white focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-900 focus:outline-none"
               value={checkinClientProjectId}
               onChange={e => setCheckinClientProjectId(e.target.value)}
             >
@@ -3442,13 +3474,13 @@ export default function App() {
         {/* 2. Front Camera Component */}
         <div className="space-y-2">
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Foto Selfie Pagi (Wajib)</label>
-          <div className="relative border border-slate-800 rounded-xl overflow-hidden bg-slate-955 h-56 flex flex-col items-center justify-center">
+          <div className="relative border border-slate-200 rounded-xl overflow-hidden bg-white h-56 flex flex-col items-center justify-center">
             {selfiePreview ? (
               <>
                 <img src={selfiePreview} alt="Selfie Preview" className="h-full w-full object-cover" />
                 <button
                   type="button" onClick={startCamera}
-                  className="absolute bottom-3 right-3 bg-slate-950/80 hover:bg-slate-950 text-white rounded-lg p-2 text-xs font-bold border border-slate-800"
+                  className="absolute bottom-3 right-3 bg-slate-900/40 hover:bg-slate-100 text-slate-900 rounded-lg p-2 text-xs font-bold border border-slate-200"
                 >
                   Ulangi Foto
                 </button>
@@ -3458,14 +3490,14 @@ export default function App() {
                 <video ref={videoRef} className="h-full w-full object-cover scale-x-[-1]" playsInline muted />
                 <button
                   type="button" onClick={capturePhoto}
-                  className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-lg shadow-sky-500/20"
+                  className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-sm shadow-sky-500/20"
                 >
                   <Camera className="h-6 w-6" />
                 </button>
               </>
             ) : (
               <div className="text-center space-y-3">
-                <Camera className="h-10 w-10 text-slate-650 mx-auto" />
+                <Camera className="h-10 w-10 text-slate-500 mx-auto" />
                 <button
                   type="button" onClick={startCamera}
                   className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg"
@@ -3482,23 +3514,23 @@ export default function App() {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Daftar Rencana Tugas Hari Ini (Maks 5)</label>
-            <span className="text-[10px] text-slate-400 font-bold">
+            <span className="text-[10px] text-slate-500 font-bold">
               {Object.values(checkinSelectedTaskIds).filter(Boolean).length} Terpilih
             </span>
           </div>
 
           {allTasks.length === 0 ? (
-            <p className="text-xs text-slate-500 italic p-3 bg-slate-955 rounded-lg border border-slate-850">
+            <p className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-slate-200">
               Tidak ada tugas aktif di sprint ini untuk Anda.
             </p>
           ) : (
-            <div className="space-y-2 max-h-52 overflow-y-auto border border-slate-800 rounded-xl p-3 bg-slate-955">
+            <div className="space-y-2 max-h-52 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-white">
               {allTasks.map(t => (
-                <div key={t.id} className="p-2.5 rounded-lg bg-slate-900 border border-slate-850/60 hover:bg-slate-850/30 transition-all">
+                <div key={t.id} className="p-2.5 rounded-lg bg-white border border-slate-200/60 hover:bg-slate-100/30 transition-all">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="mt-0.5 rounded border-slate-800 bg-slate-950 text-sky-500 focus:ring-0"
+                      className="mt-0.5 rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0"
                       checked={!!checkinSelectedTaskIds[t.id]}
                       onChange={e => setCheckinSelectedTaskIds({ ...checkinSelectedTaskIds, [t.id]: e.target.checked })}
                     />
@@ -3506,12 +3538,12 @@ export default function App() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[9px] font-mono font-bold text-slate-500">{t.code}</span>
                         {t.isCarryOver && (
-                          <span className="text-[8px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase">
+                          <span className="text-[8px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase">
                             Carry-over
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-200 font-semibold block mt-0.5 truncate">{t.title}</span>
+                      <span className="text-xs text-slate-700 font-semibold block mt-0.5 truncate">{t.title}</span>
                     </div>
                   </label>
 
@@ -3519,7 +3551,7 @@ export default function App() {
                   {checkinSelectedTaskIds[t.id] && (
                     <input
                       type="text"
-                      className="mt-2 w-full rounded border border-slate-800 bg-slate-955 px-2 py-1 text-[11px] text-white focus:outline-none placeholder-slate-650"
+                      className="mt-2 w-full rounded border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-900 focus:outline-none placeholder-slate-650"
                       placeholder="Tambahkan catatan khusus tugas ini pagi ini (opsional)..."
                       value={checkinTaskNotes[t.id] || ''}
                       onChange={e => setCheckinTaskNotes({ ...checkinTaskNotes, [t.id]: e.target.value })}
@@ -3532,11 +3564,11 @@ export default function App() {
         </div>
 
         {/* 4. Blocker Input (Optional) */}
-        <div className="space-y-3 p-4 bg-slate-955 border border-slate-850 rounded-xl">
-          <label className="flex items-center gap-2 text-xs font-bold text-slate-350 cursor-pointer">
+        <div className="space-y-3 p-4 bg-white border border-slate-200 rounded-xl">
+          <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
             <input
               type="checkbox"
-              className="rounded border-slate-800 bg-slate-950 text-sky-500 focus:ring-0"
+              className="rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0"
               checked={hasBlocker}
               onChange={e => setHasBlocker(e.target.checked)}
             />
@@ -3549,7 +3581,7 @@ export default function App() {
                 <label className="block text-[9px] font-bold text-slate-500 uppercase">Task Terhambat</label>
                 <select
                   required
-                  className="mt-1.5 w-full rounded border border-slate-800 bg-slate-900 px-2.5 py-2 text-xs text-white focus:outline-none"
+                  className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none"
                   value={blockerTaskId}
                   onChange={e => setBlockerTaskId(e.target.value)}
                 >
@@ -3565,7 +3597,7 @@ export default function App() {
                 <textarea
                   required
                   rows={2}
-                  className="mt-1.5 w-full rounded border border-slate-800 bg-slate-900 px-2.5 py-2 text-xs text-white focus:outline-none placeholder-slate-600"
+                  className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none placeholder-slate-400"
                   placeholder="Ceritakan blocker atau hambatan teknis..."
                   value={blockerDescription}
                   onChange={e => setBlockerDescription(e.target.value)}
@@ -3579,7 +3611,7 @@ export default function App() {
                 </label>
                 <select
                   multiple
-                  className="mt-1.5 w-full rounded border border-slate-800 bg-slate-900 px-2.5 py-2 text-xs text-white focus:outline-none min-h-[60px]"
+                  className="mt-1.5 w-full rounded border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 focus:outline-none min-h-[60px]"
                   value={blockerMentions}
                   onChange={e => {
                     const options = e.target.options;
@@ -3604,7 +3636,7 @@ export default function App() {
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Catatan Harian Check-in</label>
           <textarea
             rows={2}
-            className="w-full rounded-lg border border-slate-800 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none placeholder-slate-650"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none placeholder-slate-650"
             placeholder="Hari ini berencana fokus pada..."
             value={checkinDailyNote}
             onChange={e => setCheckinDailyNote(e.target.value)}
@@ -3613,7 +3645,7 @@ export default function App() {
 
         <button
           type="submit"
-          className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-lg shadow-sky-500/10 active:scale-[0.99]"
+          className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-sm shadow-sky-500/10 active:scale-[0.99]"
         >
           Kirim Check-in (Pagi)
         </button>
@@ -3626,28 +3658,28 @@ export default function App() {
     const allTasks = [...carryOverTasks, ...activeSprintTasks];
 
     return (
-      <form onSubmit={handleCheckoutSubmit} className="max-w-xl mx-auto space-y-6 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <form onSubmit={handleCheckoutSubmit} className="max-w-xl mx-auto space-y-6 bg-white border border-slate-200 p-6 rounded-2xl">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-bold text-white">Check-out Kehadiran & Standup</h2>
-            <p className="text-xs text-slate-400 mt-1">Laporkan progres dan selesaikan hari kerja Anda.</p>
+            <h2 className="text-lg font-bold text-slate-900">Check-out Kehadiran & Standup</h2>
+            <p className="text-xs text-slate-500 mt-1">Laporkan progres dan selesaikan hari kerja Anda.</p>
           </div>
-          <span className="text-[10px] font-bold bg-rose-500/15 text-rose-455 border border-rose-500/20 px-2.5 py-1 rounded-lg">
+          <span className="text-[10px] font-bold bg-rose-500/15 text-rose-600 border border-rose-500/20 px-2.5 py-1 rounded-lg">
             OUT SESSION
           </span>
         </div>
 
         {/* Check-in Info */}
-        <div className="p-4 bg-slate-955 border border-slate-850 rounded-xl text-xs space-y-2">
-          <div className="flex justify-between text-slate-450">
+        <div className="p-4 bg-white border border-slate-200 rounded-xl text-xs space-y-2">
+          <div className="flex justify-between text-slate-500">
             <span>Check-in Pagi:</span>
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-slate-900">
               {new Date(todayCheckin.device_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
-          <div className="flex justify-between text-slate-450">
+          <div className="flex justify-between text-slate-500">
             <span>Status Kerja:</span>
-            <span className="font-bold text-sky-400 uppercase">{todayCheckin.work_status}</span>
+            <span className="font-bold text-sky-600 uppercase">{todayCheckin.work_status}</span>
           </div>
         </div>
 
@@ -3656,11 +3688,11 @@ export default function App() {
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Perbarui Progres Tugas Hari Ini</label>
           
           {allTasks.length === 0 ? (
-            <p className="text-xs text-slate-500 italic p-3 bg-slate-955 rounded-lg border border-slate-850">
+            <p className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-slate-200">
               Tidak ada rencana tugas pagi ini.
             </p>
           ) : (
-            <div className="space-y-4 max-h-72 overflow-y-auto border border-slate-800 rounded-xl p-3.5 bg-slate-955 divide-y divide-slate-850">
+            <div className="space-y-4 max-h-72 overflow-y-auto border border-slate-200 rounded-xl p-3.5 bg-white divide-y divide-slate-200">
               {allTasks.map((t, idx) => {
                 const currentPercent = checkoutTaskPercents[t.id] ?? t.percent_complete;
                 const currentStatus = checkoutTaskStatuses[t.id] || t.status;
@@ -3670,12 +3702,12 @@ export default function App() {
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <span className="text-[9px] font-mono font-bold text-slate-500">{t.code}</span>
-                        <span className="text-xs text-slate-200 font-semibold block mt-0.5">{t.title}</span>
+                        <span className="text-xs text-slate-700 font-semibold block mt-0.5">{t.title}</span>
                       </div>
                       
                       {/* Status Dropdown */}
                       <select
-                        className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none"
+                        className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[11px] text-slate-900 focus:outline-none"
                         value={currentStatus}
                         onChange={e => setCheckoutTaskStatuses({ ...checkoutTaskStatuses, [t.id]: e.target.value })}
                       >
@@ -3688,12 +3720,12 @@ export default function App() {
                     {/* Progress Slider */}
                     <div className="space-y-1">
                       <div className="flex justify-between text-[11px] font-bold">
-                        <span className="text-slate-450">Kemajuan:</span>
-                        <span className="text-sky-400">{currentPercent}%</span>
+                        <span className="text-slate-500">Kemajuan:</span>
+                        <span className="text-sky-600">{currentPercent}%</span>
                       </div>
                       <input
                         type="range" min="0" max="100" step="5"
-                        className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                        className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-sky-500"
                         value={currentPercent}
                         onChange={e => setCheckoutTaskPercents({ ...checkoutTaskPercents, [t.id]: parseInt(e.target.value) })}
                       />
@@ -3704,7 +3736,7 @@ export default function App() {
                       <label className="block text-[9px] font-semibold text-slate-500 uppercase">Tautan Bukti Hasil (Evidence Link / PR)</label>
                       <input
                         type="url"
-                        className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-[11px] text-white placeholder-slate-700 focus:outline-none"
+                        className="w-full rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-[11px] text-slate-900 placeholder-slate-700 focus:outline-none"
                         placeholder="https://github.com/indotek/hwms/pull/..."
                         value={checkoutTaskEvidences[t.id] || ''}
                         onChange={e => setCheckoutTaskEvidences({ ...checkoutTaskEvidences, [t.id]: e.target.value })}
@@ -3720,13 +3752,13 @@ export default function App() {
         {/* 2. Selfie Camera Capture */}
         <div className="space-y-2">
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Foto Selfie Sore (Wajib)</label>
-          <div className="relative border border-slate-800 rounded-xl overflow-hidden bg-slate-955 h-56 flex flex-col items-center justify-center">
+          <div className="relative border border-slate-200 rounded-xl overflow-hidden bg-white h-56 flex flex-col items-center justify-center">
             {selfiePreview ? (
               <>
                 <img src={selfiePreview} alt="Selfie Preview" className="h-full w-full object-cover" />
                 <button
                   type="button" onClick={startCamera}
-                  className="absolute bottom-3 right-3 bg-slate-950/80 hover:bg-slate-950 text-white rounded-lg p-2 text-xs font-bold border border-slate-800"
+                  className="absolute bottom-3 right-3 bg-slate-900/40 hover:bg-slate-100 text-slate-900 rounded-lg p-2 text-xs font-bold border border-slate-200"
                 >
                   Ulangi Foto
                 </button>
@@ -3736,14 +3768,14 @@ export default function App() {
                 <video ref={videoRef} className="h-full w-full object-cover scale-x-[-1]" playsInline muted />
                 <button
                   type="button" onClick={capturePhoto}
-                  className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-lg shadow-sky-500/20"
+                  className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-3 shadow-sm shadow-sky-500/20"
                 >
                   <Camera className="h-6 w-6" />
                 </button>
               </>
             ) : (
               <div className="text-center space-y-3">
-                <Camera className="h-10 w-10 text-slate-650 mx-auto" />
+                <Camera className="h-10 w-10 text-slate-500 mx-auto" />
                 <button
                   type="button" onClick={startCamera}
                   className="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg"
@@ -3761,7 +3793,7 @@ export default function App() {
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Catatan Harian Check-out (Daily Summary)</label>
           <textarea
             rows={2.5}
-            className="w-full rounded-lg border border-slate-800 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none placeholder-slate-650"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none placeholder-slate-650"
             placeholder="Hari ini berhasil menyelesaikan..."
             value={checkoutDailyNote}
             onChange={e => setCheckoutDailyNote(e.target.value)}
@@ -3770,7 +3802,7 @@ export default function App() {
 
         <button
           type="submit"
-          className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-lg shadow-rose-600/10 active:scale-[0.99]"
+          className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-lg text-sm transition-all shadow-sm shadow-rose-600/10 active:scale-[0.99]"
         >
           Kirim Check-out (Sore)
         </button>
@@ -3780,10 +3812,10 @@ export default function App() {
 
   const renderTaskView = () => {
     const ragColors: Record<string, string> = {
-      GREEN: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      YELLOW: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-      RED: 'bg-red-500/20 text-red-400 border-red-500/30',
-      BLACK: 'bg-slate-955 text-rose-500 border-rose-900 border-2'
+      GREEN: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30',
+      YELLOW: 'bg-amber-500/20 text-amber-600 border-amber-500/30',
+      RED: 'bg-red-500/20 text-red-600 border-red-500/30',
+      BLACK: 'bg-white text-rose-600 border-rose-900 border-2'
     };
 
     const activeAgg = sprintAggregations[myTasksFilterSprint] || { progressPct: 0, rag: 'GREEN' };
@@ -3792,15 +3824,15 @@ export default function App() {
       <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-xl font-bold text-white">Daftar Tugas Saya & Tim</h1>
-            <p className="text-xs text-slate-400 mt-1">Kelola progres sprint tugas Anda, lihat tugas rekan kerja sebagai referensi.</p>
+            <h1 className="text-xl font-bold text-slate-900">Daftar Tugas Saya & Tim</h1>
+            <p className="text-xs text-slate-500 mt-1">Kelola progres sprint tugas Anda, lihat tugas rekan kerja sebagai referensi.</p>
           </div>
           
           {myTasksFilterSprint && (
-            <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-4 text-xs">
+            <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-4 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500 block">Progress Sprint Terpilih:</span>
-                <span className="font-bold text-white">{activeAgg.progressPct}%</span>
+                <span className="font-bold text-slate-900">{activeAgg.progressPct}%</span>
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${ragColors[activeAgg.rag]}`}>
                 {activeAgg.rag}
@@ -3809,12 +3841,12 @@ export default function App() {
           )}
         </div>
 
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
+        <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs">
           <div className="flex flex-wrap gap-3 items-center">
             <Filter className="h-4 w-4 text-slate-500" />
             
             <select
-              className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none"
+              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
               value={myTasksFilterSprint}
               onChange={e => setMyTasksFilterSprint(e.target.value)}
             >
@@ -3825,7 +3857,7 @@ export default function App() {
             </select>
 
             <select
-              className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none"
+              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
               value={myTasksFilterStatus}
               onChange={e => setMyTasksFilterStatus(e.target.value)}
             >
@@ -3836,7 +3868,7 @@ export default function App() {
             </select>
 
             <select
-              className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-white focus:outline-none"
+              className="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-900 focus:outline-none"
               value={myTasksFilterPriority}
               onChange={e => setMyTasksFilterPriority(e.target.value)}
             >
@@ -3848,10 +3880,10 @@ export default function App() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase bg-slate-900/60">
+              <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase bg-white/60">
                 <th className="px-6 py-3">Kode / Tugas</th>
                 <th className="px-6 py-3">Owner (Penanggung Jawab)</th>
                 <th className="px-6 py-3">Workstream</th>
@@ -3860,35 +3892,35 @@ export default function App() {
                 <th className="px-6 py-3 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-850 text-xs text-slate-300">
+            <tbody className="divide-y divide-slate-200 text-xs text-slate-600">
               {tasksList.map((tsk: any) => {
                 const currentOwner = tsk.assignments && tsk.assignments.length > 0 ? tsk.assignments[0].user : null;
                 const isMine = currentOwner?.id === user.id;
 
                 return (
-                  <tr key={tsk.id} className={`hover:bg-slate-900/30 ${isMine ? 'bg-sky-950/5 border-l-2 border-l-sky-500' : ''}`}>
+                  <tr key={tsk.id} className={`hover:bg-slate-50/30 ${isMine ? 'bg-sky-950/5 border-l-2 border-l-sky-500' : ''}`}>
                     <td className="px-6 py-4">
                       <div className="font-mono text-[10px] font-bold text-slate-500">{tsk.code}</div>
-                      <div className="font-bold text-white mt-0.5">{tsk.title}</div>
+                      <div className="font-bold text-slate-900 mt-0.5">{tsk.title}</div>
                       <div className="text-[10px] text-slate-500 mt-0.5">Target: {new Date(tsk.planned_end).toLocaleDateString()}</div>
                     </td>
                     <td className="px-6 py-4">
                       {currentOwner ? (
                         <div>
-                          <div className="font-semibold text-white">{currentOwner.full_name}</div>
+                          <div className="font-semibold text-slate-900">{currentOwner.full_name}</div>
                           <div className="text-[10px] text-slate-500">{currentOwner.email}</div>
                         </div>
                       ) : (
-                        <span className="text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">TBD</span>
+                        <span className="text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 px-2 py-0.5 rounded">TBD</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-slate-400">{tsk.workstream}</td>
+                    <td className="px-6 py-4 text-slate-500">{tsk.workstream}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
                           tsk.priority === 'CRITICAL' ? 'bg-red-600 text-white' :
-                          tsk.priority === 'HIGH' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                          tsk.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-800 text-slate-400'
+                          tsk.priority === 'HIGH' ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' :
+                          tsk.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : 'bg-slate-100 text-slate-500'
                         }`}>
                           {tsk.priority}
                         </span>
@@ -3899,7 +3931,7 @@ export default function App() {
                       {isMine ? (
                         <div className="flex items-center gap-2">
                           <select
-                            className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-[11px] text-white focus:outline-none"
+                            className="bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-[11px] text-slate-900 focus:outline-none"
                             value={tsk.status}
                             onChange={e => handleUpdateTaskStatusAndProgress(tsk.id, e.target.value, tsk.percent_complete)}
                           >
@@ -3909,7 +3941,7 @@ export default function App() {
                           </select>
                           <input
                             type="number" min="0" max="100"
-                            className="w-12 bg-slate-955 border border-slate-800 rounded px-1 py-0.5 text-center text-white"
+                            className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-center text-slate-900"
                             value={tsk.percent_complete}
                             onChange={e => handleUpdateTaskStatusAndProgress(tsk.id, tsk.status, parseInt(e.target.value) || 0)}
                           />
@@ -3917,7 +3949,7 @@ export default function App() {
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          <span className="font-semibold text-slate-400 uppercase text-[10px]">{tsk.status.replace(/_/g, ' ')}</span>
+                          <span className="font-semibold text-slate-500 uppercase text-[10px]">{tsk.status.replace(/_/g, ' ')}</span>
                           <div className="text-[10px] text-slate-500 font-mono">{tsk.percent_complete}% Selesai</div>
                         </div>
                       )}
@@ -3926,7 +3958,7 @@ export default function App() {
                       {(user.roles.includes('PM_ADMIN') || user.roles.includes('SUPER_ADMIN')) && (
                         <button 
                           onClick={() => openAssignModal(tsk)}
-                          className="p-1 bg-slate-800 hover:bg-slate-750 text-slate-350 hover:text-white rounded text-[10px] font-semibold border border-slate-755 px-2 py-1"
+                          className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded text-[10px] font-semibold border border-slate-300 px-2 py-1"
                         >
                           Assign
                         </button>
@@ -3961,16 +3993,16 @@ export default function App() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-white">Panel Administrasi (Master Data)</h1>
-          <p className="text-xs text-slate-400 mt-1">Kelola data master organisasi, lokasi kantor, dan kebijakan kalender nasional.</p>
+          <h1 className="text-xl font-bold text-slate-900">Panel Administrasi (Master Data)</h1>
+          <p className="text-xs text-slate-500 mt-1">Kelola data master organisasi, lokasi kantor, dan kebijakan kalender nasional.</p>
         </div>
 
-        <div className="flex border-b border-slate-800 gap-6 shrink-0 overflow-x-auto pb-1">
+        <div className="flex border-b border-slate-200 gap-6 shrink-0 overflow-x-auto pb-1">
           {subtabs.map(tab => (
             <button
               key={tab.id} onClick={() => setAdminSubTab(tab.id)}
               className={`pb-3 text-xs font-semibold tracking-wide border-b-2 transition-all whitespace-nowrap ${
-                adminSubTab === tab.id ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-500 hover:text-slate-350'
+                adminSubTab === tab.id ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.label}
@@ -4004,7 +4036,7 @@ export default function App() {
   const renderProjectsSubTab = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Proyek & Sprint Kerja</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Proyek & Sprint Kerja</h3>
         <div className="flex gap-2">
           <button 
             onClick={() => { resetProjectForm(); setProjectModalOpen(true); }}
@@ -4015,7 +4047,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { resetSprintForm(); setSprintModalOpen(true); }}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-700"
+            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-300"
           >
             <PlusCircle className="h-3.5 w-3.5" />
             Tambah Sprint
@@ -4028,11 +4060,11 @@ export default function App() {
           const sprints = sprintsList.filter(s => s.project_id === proj.id);
 
           return (
-            <div key={proj.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+            <div key={proj.id} className="p-5 bg-white border border-slate-200 rounded-xl space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="text-sm font-bold text-white">{proj.name}</h4>
-                  <span className="font-mono text-[10px] font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded uppercase mt-1 inline-block">
+                  <h4 className="text-sm font-bold text-slate-900">{proj.name}</h4>
+                  <span className="font-mono text-[10px] font-bold text-sky-600 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded uppercase mt-1 inline-block">
                     Prefix: {proj.code_prefix}
                   </span>
                 </div>
@@ -4043,14 +4075,14 @@ export default function App() {
                       setProjectForm({ name: proj.name, codePrefix: proj.code_prefix, status: proj.status });
                       setProjectModalOpen(true);
                     }}
-                    className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded"
+                    className="p-1 text-slate-500 hover:text-sky-600 hover:bg-slate-200 rounded"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
 
-              <div className="border-t border-slate-850 pt-3 space-y-2">
+              <div className="border-t border-slate-200 pt-3 space-y-2">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sprint List:</span>
                 
                 {sprints.length === 0 ? (
@@ -4067,17 +4099,17 @@ export default function App() {
                       };
 
                       return (
-                        <div key={s.id} className="flex justify-between items-center bg-slate-950/30 border border-slate-850/60 p-2.5 rounded-lg text-xs">
+                        <div key={s.id} className="flex justify-between items-center bg-slate-50/30 border border-slate-200/60 p-2.5 rounded-lg text-xs">
                           <div className="flex items-center gap-2">
                             <span className={`h-2.5 w-2.5 rounded-full ${dotColors[agg.rag]}`}></span>
-                            <span className="font-semibold text-white">Sprint #{s.number}</span>
+                            <span className="font-semibold text-slate-900">Sprint #{s.number}</span>
                             <span className="text-[10px] text-slate-500">
                               ({new Date(s.start_date).toLocaleDateString()} - {new Date(s.end_date).toLocaleDateString()})
                             </span>
                           </div>
                           
                           <div className="flex items-center gap-2.5 font-bold">
-                            <span className="text-[10px] text-slate-400">{agg.progressPct}% Done</span>
+                            <span className="text-[10px] text-slate-500">{agg.progressPct}% Done</span>
                             <button
                               onClick={() => {
                                 setSelectedSprint(s);
@@ -4090,7 +4122,7 @@ export default function App() {
                                 });
                                 setSprintModalOpen(true);
                               }}
-                              className="text-slate-450 hover:text-sky-400"
+                              className="text-slate-500 hover:text-sky-600"
                             >
                               <Edit2 className="h-3 w-3" />
                             </button>
@@ -4111,7 +4143,7 @@ export default function App() {
   const renderTasksSubTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Daftar Seluruh Tugas (Task)</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Daftar Seluruh Tugas (Task)</h3>
         <div className="flex gap-2">
           <button 
             onClick={() => { resetTaskForm(); setTaskModalOpen(true); }}
@@ -4122,7 +4154,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setImportType('tasks'); setImportDrawerOpen(true); }}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 text-slate-350 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-700"
+            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-300"
           >
             <Upload className="h-3.5 w-3.5" />
             Bulk Impor Tasks
@@ -4130,10 +4162,10 @@ export default function App() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase bg-slate-900/60">
+            <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase bg-white/60">
               <th className="px-6 py-3">Tugas / Kode</th>
               <th className="px-6 py-3">Project / Sprint</th>
               <th className="px-6 py-3">Owner</th>
@@ -4142,38 +4174,38 @@ export default function App() {
               <th className="px-6 py-3 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-850 text-xs text-slate-300">
+          <tbody className="divide-y divide-slate-200 text-xs text-slate-600">
             {tasksList.map((tsk: any) => {
               const currentOwner = tsk.assignments && tsk.assignments.length > 0 ? tsk.assignments[0].user : null;
               return (
-                <tr key={tsk.id} className="hover:bg-slate-900/30">
+                <tr key={tsk.id} className="hover:bg-slate-50/30">
                   <td className="px-6 py-4">
                     <span className="font-mono text-[10px] font-bold text-slate-500">{tsk.code}</span>
-                    <div className="font-bold text-white mt-0.5">{tsk.title}</div>
+                    <div className="font-bold text-slate-900 mt-0.5">{tsk.title}</div>
                     <div className="text-[10px] text-slate-500">Duration: {new Date(tsk.planned_start).toLocaleDateString()} - {new Date(tsk.planned_end).toLocaleDateString()}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-white">{tsk.project?.name}</div>
+                    <div className="font-semibold text-slate-900">{tsk.project?.name}</div>
                     <div className="text-[10px] text-slate-500">Sprint #{tsk.sprint?.number}</div>
                   </td>
                   <td className="px-6 py-4">
                     {currentOwner ? (
                       <div>
-                        <div className="font-semibold text-white">{currentOwner.full_name}</div>
+                        <div className="font-semibold text-slate-900">{currentOwner.full_name}</div>
                         <div className="text-[10px] text-slate-500">{currentOwner.email}</div>
                       </div>
                     ) : (
-                      <span className="text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase">TBD</span>
+                      <span className="text-[9px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 px-2 py-0.5 rounded uppercase">TBD</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase">
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 border border-sky-500/20 uppercase">
                       {tsk.functional_role?.code || 'Gen'}
                     </span>
-                    <div className="text-[10px] text-slate-550 mt-1">{tsk.workstream}</div>
+                    <div className="text-[10px] text-slate-500 mt-1">{tsk.workstream}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-white">{tsk.percent_complete}%</div>
+                    <div className="font-bold text-slate-900">{tsk.percent_complete}%</div>
                     <div className="text-[10px] text-slate-500 uppercase mt-0.5">{tsk.status.replace(/_/g, ' ')}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -4199,7 +4231,7 @@ export default function App() {
                           });
                           setTaskModalOpen(true);
                         }}
-                        className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-805 rounded"
+                        className="p-1 text-slate-500 hover:text-sky-600 hover:bg-slate-200 rounded"
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
@@ -4210,7 +4242,7 @@ export default function App() {
                             fetchAdminMasterData();
                           }
                         }}
-                        className="p-1 text-slate-400 hover:text-rose-500 hover:bg-slate-805 rounded"
+                        className="p-1 text-slate-500 hover:text-rose-600 hover:bg-slate-200 rounded"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -4226,11 +4258,11 @@ export default function App() {
   );
 
   const renderImportDrawer = () => (
-    <div className="fixed inset-y-0 right-0 w-full max-w-3xl bg-slate-900 border-l border-slate-850 shadow-2xl flex flex-col z-50 overflow-hidden">
-      <div className="p-6 border-b border-slate-850 flex items-center justify-between shrink-0">
+    <div className="fixed inset-y-0 right-0 w-full max-w-3xl bg-white border-l border-slate-200 shadow-lg flex flex-col z-50 overflow-hidden">
+      <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5 text-sky-400" />
-          <h3 className="text-base font-bold text-white">
+          <FileSpreadsheet className="h-5 w-5 text-sky-600" />
+          <h3 className="text-base font-bold text-slate-900">
             {importType === 'users' ? 'Impor Karyawan via Excel' : 'Impor Sprint Tasks via Excel'}
           </h3>
         </div>
@@ -4238,14 +4270,14 @@ export default function App() {
           <button
             type="button"
             onClick={handleDownloadTemplate}
-            className="flex items-center gap-1.5 text-xs font-semibold text-sky-400 hover:text-sky-300 border border-slate-750 hover:border-sky-500/50 bg-slate-950 px-3 py-1.5 rounded-lg"
+            className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-600 border border-slate-300 hover:border-sky-500/50 bg-slate-50 px-3 py-1.5 rounded-lg"
           >
             <Download className="h-4 w-4" />
             Unduh Template
           </button>
           <button
             onClick={() => { setImportPreview(null); setImportDrawerOpen(false); }}
-            className="text-slate-400 hover:text-white p-1 hover:bg-slate-800 rounded-lg"
+            className="text-slate-500 hover:text-slate-900 p-1 hover:bg-slate-200 rounded-lg"
           >
             <X className="h-5 w-5" />
           </button>
@@ -4255,35 +4287,35 @@ export default function App() {
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
         {importCommitMessage ? (
           <div className="flex flex-col items-center justify-center h-60 text-center space-y-4">
-            <CheckCircle2 className="h-12 w-12 text-emerald-500 animate-bounce" />
+            <CheckCircle2 className="h-12 w-12 text-emerald-600 animate-bounce" />
             <div>
-              <h4 className="font-bold text-white">Proses Impor Berhasil!</h4>
-              <p className="text-xs text-slate-400 mt-1">{importCommitMessage}</p>
+              <h4 className="font-bold text-slate-900">Proses Impor Berhasil!</h4>
+              <p className="text-xs text-slate-500 mt-1">{importCommitMessage}</p>
             </div>
           </div>
         ) : (
           <>
-            <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2 text-xs text-slate-400">
-              <span className="font-bold text-slate-200 block mb-1">Panduan Pengisian Sheet Excel:</span>
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs text-slate-500">
+              <span className="font-bold text-slate-700 block mb-1">Panduan Pengisian Sheet Excel:</span>
               <p>Kolom wajib diisi pada Sheet 1:</p>
               {importType === 'users' ? (
                 <ul className="list-disc list-inside space-y-1 text-[11px]">
-                  <li><span className="text-slate-200">Email:</span> Alamat email berakhiran domain perusahaan.</li>
-                  <li><span className="text-slate-200">Nama Lengkap:</span> Nama sesuai KTP.</li>
-                  <li><span className="text-slate-200">NIK:</span> Nomor Induk Karyawan unik.</li>
-                  <li><span className="text-slate-200">Departemen:</span> Nama departemen valid.</li>
-                  <li><span className="text-slate-200">Peran Fungsional:</span> Kode peran valid (BE, FE, QA, dll).</li>
-                  <li><span className="text-slate-200">Email Atasan:</span> Email atasan langsung.</li>
-                  <li><span className="text-slate-200">Sandi:</span> Sandi default.</li>
+                  <li><span className="text-slate-700">Email:</span> Alamat email berakhiran domain perusahaan.</li>
+                  <li><span className="text-slate-700">Nama Lengkap:</span> Nama sesuai KTP.</li>
+                  <li><span className="text-slate-700">NIK:</span> Nomor Induk Karyawan unik.</li>
+                  <li><span className="text-slate-700">Departemen:</span> Nama departemen valid.</li>
+                  <li><span className="text-slate-700">Peran Fungsional:</span> Kode peran valid (BE, FE, QA, dll).</li>
+                  <li><span className="text-slate-700">Email Atasan:</span> Email atasan langsung.</li>
+                  <li><span className="text-slate-700">Sandi:</span> Sandi default.</li>
                 </ul>
               ) : (
                 <ul className="list-disc list-inside space-y-1 text-[11px]">
-                  <li><span className="text-slate-200">Task:</span> Judul deskripsi tugas.</li>
-                  <li><span className="text-slate-200">Sprint:</span> Nomor sprint (angka, e.g. 1).</li>
-                  <li><span className="text-slate-200">Planned Start & Planned End:</span> Tanggal rencana.</li>
-                  <li><span className="text-slate-200">Role:</span> Kode peran fungsional (e.g. BE).</li>
-                  <li><span className="text-slate-200">Owner:</span> Email owner (atau 'TBD' jika belum ditetapkan).</li>
-                  <li><span className="text-slate-200">Weight:</span> Bobot tugas (float, e.g. 1.5).</li>
+                  <li><span className="text-slate-700">Task:</span> Judul deskripsi tugas.</li>
+                  <li><span className="text-slate-700">Sprint:</span> Nomor sprint (angka, e.g. 1).</li>
+                  <li><span className="text-slate-700">Planned Start & Planned End:</span> Tanggal rencana.</li>
+                  <li><span className="text-slate-700">Role:</span> Kode peran fungsional (e.g. BE).</li>
+                  <li><span className="text-slate-700">Owner:</span> Email owner (atau 'TBD' jika belum ditetapkan).</li>
+                  <li><span className="text-slate-700">Weight:</span> Bobot tugas (float, e.g. 1.5).</li>
                 </ul>
               )}
             </div>
@@ -4293,7 +4325,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Proyek Sasaran</label>
                 <select
                   required
-                  className="w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={importSelectedProjectId}
                   onChange={e => setImportSelectedProjectId(e.target.value)}
                 >
@@ -4315,10 +4347,10 @@ export default function App() {
                   }
                   fileInputRef.current?.click();
                 }}
-                className="border-2 border-dashed border-slate-800 rounded-xl p-8 bg-slate-950/20 hover:bg-slate-950/40 cursor-pointer flex flex-col items-center justify-center transition-all"
+                className="border-2 border-dashed border-slate-200 rounded-xl p-8 bg-slate-50/20 hover:bg-slate-100/40 cursor-pointer flex flex-col items-center justify-center transition-all"
               >
                 <Upload className="h-8 w-8 text-slate-500" />
-                <span className="text-xs font-semibold text-slate-350 mt-3">Pilih file Excel Anda</span>
+                <span className="text-xs font-semibold text-slate-600 mt-3">Pilih file Excel Anda</span>
                 <span className="text-[10px] text-slate-500 mt-1">Hanya mendukung format xlsx</span>
                 <input 
                   type="file" 
@@ -4332,49 +4364,49 @@ export default function App() {
 
             {importLoading && (
               <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
               </div>
             )}
 
             {importPreview && (
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-slate-300">Hasil Pratinjau (Preview)</span>
+                  <span className="font-bold text-slate-600">Hasil Pratinjau (Preview)</span>
                   <div className="flex gap-3 font-semibold">
-                    <span className="text-emerald-400">{importPreview.valid} Valid</span>
-                    <span className="text-red-400">{importPreview.invalid} Gagal (Akan Dilewati)</span>
+                    <span className="text-emerald-600">{importPreview.valid} Valid</span>
+                    <span className="text-red-600">{importPreview.invalid} Gagal (Akan Dilewati)</span>
                   </div>
                 </div>
 
-                <div className="border border-slate-850 rounded-xl overflow-hidden divide-y divide-slate-850">
+                <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200">
                   {importPreview.rows.map((row: any, index: number) => (
-                    <div key={index} className={`p-4 text-xs ${row.isValid ? 'bg-slate-950/20' : 'bg-red-950/10 border-l-4 border-l-red-500'}`}>
+                    <div key={index} className={`p-4 text-xs ${row.isValid ? 'bg-slate-50/20' : 'bg-red-950/10 border-l-4 border-l-red-500'}`}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className="font-bold text-white">{row.title || 'Tanpa Judul'}</span>
+                          <span className="font-bold text-slate-900">{row.title || 'Tanpa Judul'}</span>
                           {importType === 'tasks' && <span className="text-[10px] text-slate-500 ml-2">Sprint #{row.sprintNumber}</span>}
                         </div>
                         {row.isValid ? (
-                          <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase">Ready</span>
+                          <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase">Ready</span>
                         ) : (
-                          <span className="text-[9px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded uppercase">Error</span>
+                          <span className="text-[9px] font-bold text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded uppercase">Error</span>
                         )}
                       </div>
-                      <div className="flex gap-4 text-[10px] text-slate-400 mt-2 font-mono">
+                      <div className="flex gap-4 text-[10px] text-slate-500 mt-2 font-mono">
                         {importType === 'users' ? (
                           <>
-                            <div>NIK: <span className="text-white">{row.nik || '-'}</span></div>
-                            <div>Dept: <span className="text-sky-400">{row.departmentName || '-'}</span></div>
+                            <div>NIK: <span className="text-slate-900">{row.nik || '-'}</span></div>
+                            <div>Dept: <span className="text-sky-600">{row.departmentName || '-'}</span></div>
                           </>
                         ) : (
                           <>
-                            <div>Owner: <span className="text-white">{row.ownerEmail || 'TBD'}</span></div>
-                            <div>Bobot (Weight): <span className="text-sky-400">{row.weight}</span></div>
+                            <div>Owner: <span className="text-slate-900">{row.ownerEmail || 'TBD'}</span></div>
+                            <div>Bobot (Weight): <span className="text-sky-600">{row.weight}</span></div>
                           </>
                         )}
                       </div>
                       {row.errors.length > 0 && (
-                        <div className="mt-2.5 p-2 bg-red-950/40 border border-red-900/30 rounded text-[10px] text-red-400 space-y-1">
+                        <div className="mt-2.5 p-2 bg-red-950/40 border border-red-200/30 rounded text-[10px] text-red-600 space-y-1">
                           {row.errors.map((err: string, i: number) => (
                             <div key={i} className="flex items-center gap-1.5">
                               <AlertCircle className="h-3 w-3 shrink-0" />
@@ -4393,7 +4425,7 @@ export default function App() {
       </div>
 
       {!importCommitMessage && importPreview && (
-        <div className="p-6 border-t border-slate-850 bg-slate-900/80 shrink-0 flex gap-3">
+        <div className="p-6 border-t border-slate-200 bg-white/80 shrink-0 flex gap-3">
           <button 
             onClick={handleCommitImport}
             disabled={importPreview.valid === 0 || importLoading}
@@ -4403,7 +4435,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setImportPreview(null); }}
-            className="px-6 bg-slate-855 text-slate-400 font-bold text-xs py-3 rounded-lg text-center border border-slate-800"
+            className="px-6 bg-slate-50 text-slate-500 font-bold text-xs py-3 rounded-lg text-center border border-slate-200"
           >
             Batal
           </button>
@@ -4413,11 +4445,11 @@ export default function App() {
   );
 
   const renderProjectModal = () => (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">{selectedProject ? 'Ubah Proyek' : 'Tambah Proyek Baru'}</h3>
-          <button onClick={() => setProjectModalOpen(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">{selectedProject ? 'Ubah Proyek' : 'Tambah Proyek Baru'}</h3>
+          <button onClick={() => setProjectModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <form onSubmit={handleSaveProject}>
@@ -4426,7 +4458,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Nama Proyek</label>
               <input 
                 type="text" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Core Platform Revamp"
                 value={projectForm.name}
                 onChange={e => setProjectForm({ ...projectForm, name: e.target.value })}
@@ -4437,7 +4469,7 @@ export default function App() {
               <input 
                 type="text" required
                 disabled={!!selectedProject}
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none disabled:opacity-50"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                 placeholder="CORE"
                 value={projectForm.codePrefix}
                 onChange={e => setProjectForm({ ...projectForm, codePrefix: e.target.value })}
@@ -4445,9 +4477,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
             <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setProjectModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+            <button type="button" onClick={() => setProjectModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
           </div>
         </form>
       </div>
@@ -4455,11 +4487,11 @@ export default function App() {
   );
 
   const renderSprintModal = () => (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">{selectedSprint ? 'Ubah Sprint' : 'Tambah Sprint Baru'}</h3>
-          <button onClick={() => setSprintModalOpen(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">{selectedSprint ? 'Ubah Sprint' : 'Tambah Sprint Baru'}</h3>
+          <button onClick={() => setSprintModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <form onSubmit={handleSaveSprint}>
@@ -4469,7 +4501,7 @@ export default function App() {
               <select
                 required
                 disabled={!!selectedSprint}
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none disabled:opacity-50"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                 value={sprintForm.projectId}
                 onChange={e => setSprintForm({ ...sprintForm, projectId: e.target.value })}
               >
@@ -4484,7 +4516,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Nomor Sprint (e.g. 1, 2)</label>
               <input 
                 type="number" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="1"
                 value={sprintForm.number}
                 onChange={e => setSprintForm({ ...sprintForm, number: e.target.value })}
@@ -4496,7 +4528,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Tanggal Mulai</label>
                 <input 
                   type="date" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={sprintForm.startDate}
                   onChange={e => setSprintForm({ ...sprintForm, startDate: e.target.value })}
                 />
@@ -4505,7 +4537,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Tanggal Selesai</label>
                 <input 
                   type="date" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={sprintForm.endDate}
                   onChange={e => setSprintForm({ ...sprintForm, endDate: e.target.value })}
                 />
@@ -4516,7 +4548,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Goal / Deskripsi Target</label>
               <input 
                 type="text"
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Menyelesaikan pipeline CI/CD dan Autentikasi"
                 value={sprintForm.goal}
                 onChange={e => setSprintForm({ ...sprintForm, goal: e.target.value })}
@@ -4524,9 +4556,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
             <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setSprintModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+            <button type="button" onClick={() => setSprintModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
           </div>
         </form>
       </div>
@@ -4534,11 +4566,11 @@ export default function App() {
   );
 
   const renderTaskModal = () => (
-    <div className="fixed inset-0 bg-slate-955/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">{selectedTask ? 'Ubah Tugas' : 'Tambah Tugas Baru'}</h3>
-          <button onClick={() => setTaskModalOpen(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">{selectedTask ? 'Ubah Tugas' : 'Tambah Tugas Baru'}</h3>
+          <button onClick={() => setTaskModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <form onSubmit={handleSaveTask}>
@@ -4549,7 +4581,7 @@ export default function App() {
                 <select
                   required
                   disabled={!!selectedTask}
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none disabled:opacity-50"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                   value={taskForm.projectId}
                   onChange={e => setTaskForm({ ...taskForm, projectId: e.target.value })}
                 >
@@ -4564,7 +4596,7 @@ export default function App() {
                 <select
                   required
                   disabled={!!selectedTask}
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none disabled:opacity-50"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
                   value={taskForm.sprintId}
                   onChange={e => setTaskForm({ ...taskForm, sprintId: e.target.value })}
                 >
@@ -4580,7 +4612,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Deskripsi Tugas (Task)</label>
               <input 
                 type="text" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Implementasi endpoint CRUD User"
                 value={taskForm.title}
                 onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
@@ -4592,7 +4624,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Planned Start</label>
                 <input 
                   type="date" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.plannedStart}
                   onChange={e => setTaskForm({ ...taskForm, plannedStart: e.target.value })}
                 />
@@ -4601,7 +4633,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Planned End</label>
                 <input 
                   type="date" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.plannedEnd}
                   onChange={e => setTaskForm({ ...taskForm, plannedEnd: e.target.value })}
                 />
@@ -4612,7 +4644,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Role Terkait</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.functionalRoleId}
                   onChange={e => setTaskForm({ ...taskForm, functionalRoleId: e.target.value })}
                 >
@@ -4626,7 +4658,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Workstream</label>
                 <input 
                   type="text"
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.workstream}
                   onChange={e => setTaskForm({ ...taskForm, workstream: e.target.value })}
                 />
@@ -4635,7 +4667,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Bobot (Weight)</label>
                 <input 
                   type="number" step="0.1" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.weight}
                   onChange={e => setTaskForm({ ...taskForm, weight: parseFloat(e.target.value) || 1.0 })}
                 />
@@ -4646,7 +4678,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Prioritas</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.priority}
                   onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}
                 >
@@ -4658,7 +4690,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Risk Level</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.riskLevel}
                   onChange={e => setTaskForm({ ...taskForm, riskLevel: e.target.value })}
                 >
@@ -4671,7 +4703,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Deliverable</label>
                 <input 
                   type="text"
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.deliverable}
                   onChange={e => setTaskForm({ ...taskForm, deliverable: e.target.value })}
                 />
@@ -4682,7 +4714,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Status</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.status}
                   onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}
                 >
@@ -4695,7 +4727,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">% Complete (0-100)</label>
                 <input 
                   type="number" min="0" max="100" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={taskForm.percentComplete}
                   onChange={e => setTaskForm({ ...taskForm, percentComplete: parseInt(e.target.value) || 0 })}
                 />
@@ -4705,7 +4737,7 @@ export default function App() {
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Catatan (Notes)</label>
               <textarea 
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-955 px-3.5 py-2 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none"
                 placeholder="Opsional catatan detail tugas..."
                 value={taskForm.notes}
                 onChange={e => setTaskForm({ ...taskForm, notes: e.target.value })}
@@ -4713,9 +4745,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
             <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setTaskModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+            <button type="button" onClick={() => setTaskModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
           </div>
         </form>
       </div>
@@ -4725,31 +4757,31 @@ export default function App() {
   const renderProfileView = () => (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-lg font-bold text-white">Profil Saya</h1>
-        <p className="text-xs text-slate-400 mt-1">Kelola data profil dan keamanan akun Anda.</p>
+        <h1 className="text-lg font-bold text-slate-900">Profil Saya</h1>
+        <p className="text-xs text-slate-500 mt-1">Kelola data profil dan keamanan akun Anda.</p>
       </div>
 
       {/* Read-only identity */}
-      <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2.5 text-xs">
-        <div className="flex justify-between"><span className="text-slate-400">Email</span> <span className="text-white">{user.email}</span></div>
-        <div className="flex justify-between"><span className="text-slate-400">NIK</span> <span className="text-white font-mono">{user.nik}</span></div>
-        <div className="flex justify-between"><span className="text-slate-400">Peran Sistem</span> <span className="text-sky-400 font-semibold">{(user.roles || []).join(', ')}</span></div>
-        <div className="flex justify-between"><span className="text-slate-400">Mode Check-in</span> <span className="text-slate-300">{user.checkinMode}</span></div>
-        <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-850">Email, NIK, dan peran hanya dapat diubah oleh Admin/HR.</p>
+      <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-2.5 text-xs">
+        <div className="flex justify-between"><span className="text-slate-500">Email</span> <span className="text-slate-900">{user.email}</span></div>
+        <div className="flex justify-between"><span className="text-slate-500">NIK</span> <span className="text-slate-900 font-mono">{user.nik}</span></div>
+        <div className="flex justify-between"><span className="text-slate-500">Peran Sistem</span> <span className="text-sky-600 font-semibold">{(user.roles || []).join(', ')}</span></div>
+        <div className="flex justify-between"><span className="text-slate-500">Mode Check-in</span> <span className="text-slate-600">{user.checkinMode}</span></div>
+        <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-200">Email, NIK, dan peran hanya dapat diubah oleh Admin/HR.</p>
       </div>
 
       {/* Edit profile */}
-      <form onSubmit={handleUpdateProfile} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-        <h2 className="text-sm font-bold text-white">Ubah Profil</h2>
+      <form onSubmit={handleUpdateProfile} className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4">
+        <h2 className="text-sm font-bold text-slate-900">Ubah Profil</h2>
         {profileMsg && (
-          <div className={`text-xs rounded-lg px-3 py-2 border ${profileMsg.ok ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>{profileMsg.text}</div>
+          <div className={`text-xs rounded-lg px-3 py-2 border ${profileMsg.ok ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>{profileMsg.text}</div>
         )}
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</label>
           <input
             type="text" required value={profileForm.fullName}
             onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
         </div>
         <div>
@@ -4757,7 +4789,7 @@ export default function App() {
           <select
             value={profileForm.timezone}
             onChange={e => setProfileForm({ ...profileForm, timezone: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           >
             <option value="Asia/Jakarta">WIB — Asia/Jakarta</option>
             <option value="Asia/Makassar">WITA — Asia/Makassar</option>
@@ -4770,17 +4802,17 @@ export default function App() {
       </form>
 
       {/* Change password */}
-      <form onSubmit={handleChangePassword} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-        <h2 className="text-sm font-bold text-white">Ganti Sandi</h2>
+      <form onSubmit={handleChangePassword} className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4">
+        <h2 className="text-sm font-bold text-slate-900">Ganti Sandi</h2>
         {passwordMsg && (
-          <div className={`text-xs rounded-lg px-3 py-2 border ${passwordMsg.ok ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>{passwordMsg.text}</div>
+          <div className={`text-xs rounded-lg px-3 py-2 border ${passwordMsg.ok ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>{passwordMsg.text}</div>
         )}
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sandi Lama</label>
           <input
             type="password" required value={passwordForm.oldPassword}
             onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
         </div>
         <div>
@@ -4788,7 +4820,7 @@ export default function App() {
           <input
             type="password" required minLength={8} value={passwordForm.newPassword}
             onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
           <p className="text-[10px] text-slate-500 mt-1">Minimal 8 karakter.</p>
         </div>
@@ -4797,7 +4829,7 @@ export default function App() {
           <input
             type="password" required value={passwordForm.confirmPassword}
             onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
           />
         </div>
         <button type="submit" disabled={passwordSaving} className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-lg flex items-center gap-1.5">
@@ -4812,18 +4844,18 @@ export default function App() {
   );
 
   const renderAssignModal = () => (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">Assign Owner Tugas</h3>
-          <button onClick={() => setAssignModalOpen(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">Assign Owner Tugas</h3>
+          <button onClick={() => setAssignModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase">Pilih Karyawan</label>
             <select
-              className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+              className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
               defaultValue=""
               onChange={e => {
                 if (selectedTask && e.target.value) {
@@ -4843,11 +4875,11 @@ export default function App() {
   );
 
   const renderUserModal = () => (
-    <div className="fixed inset-0 bg-slate-955/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-805 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between bg-slate-900/60 shrink-0">
-          <h3 className="text-sm font-bold text-white">{selectedUser ? 'Ubah Karyawan' : 'Tambah Karyawan Baru'}</h3>
-          <button onClick={() => setUserModalOpen(false)} className="text-slate-405 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-white/60 shrink-0">
+          <h3 className="text-sm font-bold text-slate-900">{selectedUser ? 'Ubah Karyawan' : 'Tambah Karyawan Baru'}</h3>
+          <button onClick={() => setUserModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <form onSubmit={handleSaveUser}>
@@ -4856,7 +4888,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</label>
               <input
                 type="text" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Budi Santoso"
                 value={userForm.fullName}
                 onChange={e => setUserForm({ ...userForm, fullName: e.target.value })}
@@ -4868,7 +4900,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Kerja</label>
                 <input
                   type="email" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="budi@indotek.com"
                   value={userForm.email}
                   onChange={e => setUserForm({ ...userForm, email: e.target.value })}
@@ -4878,7 +4910,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">NIK</label>
                 <input
                   type="text" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="NIK-1234"
                   value={userForm.nik}
                   onChange={e => setUserForm({ ...userForm, nik: e.target.value })}
@@ -4891,7 +4923,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kata Sandi</label>
                 <input
                   type="password" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="••••••••"
                   value={userForm.password}
                   onChange={e => setUserForm({ ...userForm, password: e.target.value })}
@@ -4903,7 +4935,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Departemen</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.departmentId}
                   onChange={e => setUserForm({ ...userForm, departmentId: e.target.value })}
                 >
@@ -4916,7 +4948,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peran Fungsional</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.functionalRoleId}
                   onChange={e => setUserForm({ ...userForm, functionalRoleId: e.target.value })}
                 >
@@ -4932,7 +4964,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Atasan Langsung (Manager)</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.managerId}
                   onChange={e => setUserForm({ ...userForm, managerId: e.target.value })}
                 >
@@ -4945,7 +4977,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Zona Waktu (Timezone)</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.timezone}
                   onChange={e => setUserForm({ ...userForm, timezone: e.target.value })}
                 >
@@ -4960,7 +4992,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mode Presensi (Checkin Mode)</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.checkinMode}
                   onChange={e => setUserForm({ ...userForm, checkinMode: e.target.value })}
                 >
@@ -4972,7 +5004,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jatah Cuti (Leave Balance)</label>
                 <input
                   type="number" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={userForm.leaveBalance}
                   onChange={e => setUserForm({ ...userForm, leaveBalance: parseInt(e.target.value) || 12 })}
                 />
@@ -4983,7 +5015,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sistem Roles (Multi-role)</label>
               <select
                 multiple
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none min-h-[80px]"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none min-h-[80px]"
                 value={userForm.systemRoles}
                 onChange={e => {
                   const options = e.target.options;
@@ -5002,9 +5034,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
             <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setUserModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+            <button type="button" onClick={() => setUserModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
           </div>
         </form>
       </div>
@@ -5012,11 +5044,11 @@ export default function App() {
   );
 
   const renderLocationModal = () => (
-    <div className="fixed inset-0 bg-slate-955/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-805 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">{selectedLocation ? 'Ubah Lokasi' : 'Tambah Lokasi Baru'}</h3>
-          <button onClick={() => setLocationModalOpen(false)} className="text-slate-405 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">{selectedLocation ? 'Ubah Lokasi' : 'Tambah Lokasi Baru'}</h3>
+          <button onClick={() => setLocationModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <form onSubmit={handleSaveLocation}>
@@ -5025,7 +5057,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Nama Lokasi / Kantor</label>
               <input
                 type="text" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Kantor Pusat Indotek"
                 value={locationForm.name}
                 onChange={e => setLocationForm({ ...locationForm, name: e.target.value })}
@@ -5036,7 +5068,7 @@ export default function App() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Tipe</label>
                 <select
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   value={locationForm.type}
                   onChange={e => setLocationForm({ ...locationForm, type: e.target.value })}
                 >
@@ -5048,7 +5080,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Radius Validasi (Meter)</label>
                 <input
                   type="number" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="200"
                   value={locationForm.radiusM}
                   onChange={e => setLocationForm({ ...locationForm, radiusM: e.target.value })}
@@ -5061,7 +5093,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Latitude</label>
                 <input
                   type="text" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="-6.917464"
                   value={locationForm.lat}
                   onChange={e => setLocationForm({ ...locationForm, lat: e.target.value })}
@@ -5071,7 +5103,7 @@ export default function App() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase">Longitude</label>
                 <input
                   type="text" required
-                  className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                   placeholder="107.619122"
                   value={locationForm.lng}
                   onChange={e => setLocationForm({ ...locationForm, lng: e.target.value })}
@@ -5080,9 +5112,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
             <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setLocationModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+            <button type="button" onClick={() => setLocationModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
           </div>
         </form>
       </div>
@@ -5090,11 +5122,11 @@ export default function App() {
   );
 
   const renderHolidayModal = () => (
-    <div className="fixed inset-0 bg-slate-955/80 backdrop-blur flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-805 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-slate-850 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">{selectedHoliday ? 'Ubah Hari Libur' : 'Tambah Hari Libur'}</h3>
-          <button onClick={() => setHolidayModalOpen(false)} className="text-slate-405 hover:text-white"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">{selectedHoliday ? 'Ubah Hari Libur' : 'Tambah Hari Libur'}</h3>
+          <button onClick={() => setHolidayModalOpen(false)} className="text-slate-500 hover:text-slate-900"><X className="h-5 w-5" /></button>
         </div>
 
         <form onSubmit={handleSaveHoliday}>
@@ -5103,7 +5135,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Tanggal Libur</label>
               <input
                 type="date" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 value={holidayForm.date}
                 onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
               />
@@ -5113,7 +5145,7 @@ export default function App() {
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Deskripsi / Nama Libur</label>
               <input
                 type="text" required
-                className="mt-2 w-full rounded-lg border border-slate-805 bg-slate-950 px-3.5 py-2.5 text-xs text-white focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none"
                 placeholder="Tahun Baru Islam"
                 value={holidayForm.name}
                 onChange={e => setHolidayForm({ ...holidayForm, name: e.target.value })}
@@ -5121,10 +5153,10 @@ export default function App() {
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-350 cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="rounded border-slate-800 bg-slate-950 text-sky-500 focus:ring-0"
+                  className="rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-0"
                   checked={holidayForm.isCutiBersama}
                   onChange={e => setHolidayForm({ ...holidayForm, isCutiBersama: e.target.checked })}
                 />
@@ -5133,9 +5165,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-slate-850 flex justify-end gap-3 bg-slate-900/60 shrink-0">
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white/60 shrink-0">
             <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg">Simpan</button>
-            <button type="button" onClick={() => setHolidayModalOpen(false)} className="bg-slate-800 text-slate-400 font-bold text-xs px-5 py-2.5 rounded border border-slate-700">Batal</button>
+            <button type="button" onClick={() => setHolidayModalOpen(false)} className="bg-slate-100 text-slate-500 font-bold text-xs px-5 py-2.5 rounded border border-slate-300">Batal</button>
           </div>
         </form>
       </div>
@@ -5145,7 +5177,7 @@ export default function App() {
   const renderUsersSubTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Daftar Pengguna ({usersList.length})</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Daftar Pengguna ({usersList.length})</h3>
         <div className="flex gap-2">
           <button 
             onClick={() => { resetUserForm(); setUserModalOpen(true); }}
@@ -5156,7 +5188,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setImportType('users'); setImportDrawerOpen(true); }}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 text-slate-350 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-700"
+            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3.5 py-2 rounded-lg border border-slate-300"
           >
             <Upload className="h-3.5 w-3.5" />
             Impor dari Excel
@@ -5164,10 +5196,10 @@ export default function App() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-805 bg-slate-900/40">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/40">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900/60">
+            <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/60">
               <th className="px-6 py-3">Karyawan</th>
               <th className="px-6 py-3">NIK</th>
               <th className="px-6 py-3">Peran Fungsional</th>
@@ -5175,32 +5207,32 @@ export default function App() {
               <th className="px-6 py-3 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-850 text-xs text-slate-300">
+          <tbody className="divide-y divide-slate-200 text-xs text-slate-600">
             {usersList.map((usr: any) => (
-              <tr key={usr.id} className="hover:bg-slate-900/30">
+              <tr key={usr.id} className="hover:bg-slate-50/30">
                 <td className="px-6 py-4">
-                  <div className="font-semibold text-white">{usr.full_name}</div>
+                  <div className="font-semibold text-slate-900">{usr.full_name}</div>
                   <div className="text-[10px] text-slate-500">{usr.email}</div>
                   <div className="flex gap-1 mt-1">
                     {usr.system_roles.map((r: string) => (
-                      <span key={r} className="text-[8px] bg-slate-800 px-1 py-0.2 rounded text-slate-400 uppercase font-bold border border-slate-700">{r}</span>
+                      <span key={r} className="text-[8px] bg-slate-100 px-1 py-0.2 rounded text-slate-500 uppercase font-bold border border-slate-300">{r}</span>
                     ))}
                   </div>
                 </td>
-                <td className="px-6 py-4 font-mono text-[11px] text-slate-400">{usr.nik}</td>
-                <td className="px-6 py-4 font-medium text-sky-400">{usr.functional_role?.name || '-'}</td>
+                <td className="px-6 py-4 font-mono text-[11px] text-slate-500">{usr.nik}</td>
+                <td className="px-6 py-4 font-medium text-sky-600">{usr.functional_role?.name || '-'}</td>
                 <td className="px-6 py-4">{usr.department?.name || '-'}</td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-1.5">
                     <button 
                       onClick={() => handleExportPDP(usr.id, usr.full_name)}
-                      className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-800"
+                      className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-200"
                       title="Ekspor Data PDP"
                     >
                       <Download className="h-4 w-4" />
                     </button>
-                    <button onClick={() => openEditUser(usr)} className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded"><Edit2 className="h-4 w-4" /></button>
-                    <button onClick={() => handleDeleteUser(usr.id)} className="p-1 text-slate-400 hover:text-rose-500 hover:bg-slate-800 rounded"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => openEditUser(usr)} className="p-1 text-slate-500 hover:text-sky-600 hover:bg-slate-200 rounded"><Edit2 className="h-4 w-4" /></button>
+                    <button onClick={() => handleDeleteUser(usr.id)} className="p-1 text-slate-500 hover:text-rose-600 hover:bg-slate-200 rounded"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -5214,28 +5246,28 @@ export default function App() {
   const renderLocationsSubTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Lokasi Kantor & Klien</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Lokasi Kantor & Klien</h3>
         <button onClick={() => { resetLocationForm(); setLocationModalOpen(true); }} className="flex items-center gap-1 bg-sky-500 text-white text-xs px-3.5 py-2 rounded-lg"><PlusCircle className="h-3.5 w-3.5" /> Tambah Lokasi</button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {locationsList.map((loc: any) => (
-          <div key={loc.id} className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+          <div key={loc.id} className="p-4 bg-white border border-slate-200 rounded-xl">
             <div className="flex justify-between items-start">
               <div>
-                <h4 className="text-xs font-bold text-white">{loc.name}</h4>
-                <span className="text-[9px] uppercase font-bold text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded border border-sky-500/20 inline-block mt-1">{loc.type}</span>
+                <h4 className="text-xs font-bold text-slate-900">{loc.name}</h4>
+                <span className="text-[9px] uppercase font-bold text-sky-600 bg-sky-500/10 px-1.5 py-0.2 rounded border border-sky-500/20 inline-block mt-1">{loc.type}</span>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => openEditLocation(loc)} className="p-1 text-slate-400 hover:text-sky-400"><Edit2 className="h-3.5 w-3.5" /></button>
+                <button onClick={() => openEditLocation(loc)} className="p-1 text-slate-500 hover:text-sky-600"><Edit2 className="h-3.5 w-3.5" /></button>
                 <button 
                   onClick={async () => { if (confirm('Hapus lokasi?')) { await fetch(`${API_URL}/admin/locations/${loc.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }} 
-                  className="p-1 text-slate-400 hover:text-rose-500"
+                  className="p-1 text-slate-500 hover:text-rose-600"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
-            <div className="mt-3 text-[11px] text-slate-400 space-y-1 pt-2 border-t border-slate-800">
+            <div className="mt-3 text-[11px] text-slate-500 space-y-1 pt-2 border-t border-slate-200">
               <div className="flex justify-between"><span>Radius:</span> <span>{loc.radius_m}m</span></div>
               <div className="flex justify-between"><span>Coords:</span> <span>{loc.lat},{loc.lng}</span></div>
             </div>
@@ -5248,29 +5280,29 @@ export default function App() {
   const renderHolidaysSubTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Kalender Hari Libur</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Kalender Hari Libur</h3>
         <button onClick={() => { resetHolidayForm(); setHolidayModalOpen(true); }} className="flex items-center gap-1 bg-sky-500 text-white text-xs px-3.5 py-2 rounded-lg"><PlusCircle className="h-3.5 w-3.5" /> Tambah Libur</button>
       </div>
-      <div className="overflow-x-auto border border-slate-805 rounded-xl bg-slate-900/40">
+      <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white/40">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase bg-slate-900/60"><th className="px-6 py-3">Tanggal</th><th className="px-6 py-3">Nama Libur</th><th className="px-6 py-3">Tipe</th><th className="px-6 py-3 text-right">Aksi</th></tr>
+            <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase bg-white/60"><th className="px-6 py-3">Tanggal</th><th className="px-6 py-3">Nama Libur</th><th className="px-6 py-3">Tipe</th><th className="px-6 py-3 text-right">Aksi</th></tr>
           </thead>
-          <tbody className="divide-y divide-slate-850 text-slate-300">
+          <tbody className="divide-y divide-slate-200 text-slate-600">
             {holidaysList.map((h: any) => (
-              <tr key={h.id} className="hover:bg-slate-900/30">
+              <tr key={h.id} className="hover:bg-slate-50/30">
                 <td className="px-6 py-3 font-mono">{new Date(h.date).toLocaleDateString()}</td>
-                <td className="px-6 py-3 font-semibold text-white">{h.name}</td>
+                <td className="px-6 py-3 font-semibold text-slate-900">{h.name}</td>
                 <td className="px-6 py-3">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${h.is_cuti_bersama ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${h.is_cuti_bersama ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
                     {h.is_cuti_bersama ? 'Cuti Bersama' : 'Libur Nasional'}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-right">
-                  <button onClick={() => openEditHoliday(h)} className="p-1 text-slate-450 hover:text-sky-400 mr-2"><Edit2 className="h-4 w-4" /></button>
+                  <button onClick={() => openEditHoliday(h)} className="p-1 text-slate-500 hover:text-sky-600 mr-2"><Edit2 className="h-4 w-4" /></button>
                   <button 
                     onClick={async () => { if (confirm('Hapus libur?')) { await fetch(`${API_URL}/admin/holidays/${h.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
-                    className="p-1 text-slate-455 hover:text-rose-500"
+                    className="p-1 text-slate-500 hover:text-rose-600"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -5286,7 +5318,7 @@ export default function App() {
   const renderDepartmentsSubTab = () => (
     <div className="space-y-4 max-w-xl">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Departemen</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Departemen</h3>
         <button 
           onClick={async () => {
             const name = prompt('Nama Departemen:');
@@ -5300,13 +5332,13 @@ export default function App() {
           Tambah
         </button>
       </div>
-      <div className="border border-slate-800 rounded-xl divide-y divide-slate-850 bg-slate-900/40 text-xs">
+      <div className="border border-slate-200 rounded-xl divide-y divide-slate-200 bg-white/40 text-xs">
         {departmentsList.map((d: any) => (
           <div key={d.id} className="p-4 flex justify-between items-center">
-            <span className="font-semibold text-white">{d.name}</span>
+            <span className="font-semibold text-slate-900">{d.name}</span>
             <button 
               onClick={async () => { if (confirm('Hapus?')) { await fetch(`${API_URL}/admin/departments/${d.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
-              className="text-slate-400 hover:text-rose-500"
+              className="text-slate-500 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -5319,7 +5351,7 @@ export default function App() {
   const renderTeamsSubTab = () => (
     <div className="space-y-4 max-w-xl">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Tim Kerja</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Tim Kerja</h3>
         <button 
           onClick={async () => {
             const name = prompt('Nama Tim:');
@@ -5333,13 +5365,13 @@ export default function App() {
           Tambah
         </button>
       </div>
-      <div className="border border-slate-800 rounded-xl divide-y divide-slate-855 bg-slate-900/40 text-xs">
+      <div className="border border-slate-200 rounded-xl divide-y divide-slate-200 bg-white/40 text-xs">
         {teamsList.map((t: any) => (
           <div key={t.id} className="p-4 flex justify-between items-center">
-            <span className="font-semibold text-white">{t.name}</span>
+            <span className="font-semibold text-slate-900">{t.name}</span>
             <button 
               onClick={async () => { if (confirm('Hapus?')) { await fetch(`${API_URL}/admin/teams/${t.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
-              className="text-slate-400 hover:text-rose-500"
+              className="text-slate-500 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -5352,7 +5384,7 @@ export default function App() {
   const renderRolesSubTab = () => (
     <div className="space-y-4 max-w-xl">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-white">Peran Fungsional</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Peran Fungsional</h3>
         <button 
           onClick={async () => {
             const name = prompt('Nama Peran:');
@@ -5367,16 +5399,16 @@ export default function App() {
           Tambah
         </button>
       </div>
-      <div className="border border-slate-800 rounded-xl divide-y divide-slate-855 bg-slate-900/40 text-xs">
+      <div className="border border-slate-200 rounded-xl divide-y divide-slate-200 bg-white/40 text-xs">
         {rolesList.map((r: any) => (
           <div key={r.id} className="p-4 flex justify-between items-center">
             <div>
-              <span className="font-semibold text-white">{r.name}</span>
-              <span className="ml-2 bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded text-[10px] font-mono">{r.code}</span>
+              <span className="font-semibold text-slate-900">{r.name}</span>
+              <span className="ml-2 bg-sky-500/10 text-sky-600 px-2 py-0.5 rounded text-[10px] font-mono">{r.code}</span>
             </div>
             <button 
               onClick={async () => { if (confirm('Hapus?')) { await fetch(`${API_URL}/admin/functional-roles/${r.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminMasterData(); } }}
-              className="text-slate-400 hover:text-rose-500"
+              className="text-slate-500 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
             </button>
